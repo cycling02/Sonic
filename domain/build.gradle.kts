@@ -40,7 +40,7 @@ dependencies {
     implementation(libs.androidx.hilt.android)
     ksp(libs.androidx.hilt.compiler)
     
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.1")
+    implementation(libs.kotlinx.coroutines.core)
     
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

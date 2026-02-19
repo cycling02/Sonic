@@ -14,7 +14,7 @@ import com.cycling.data.local.entity.SongEntity
         PlaylistEntity::class,
         PlaylistSongEntity::class
     ],
-    version = 1,
+    version = 3,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {

@@ -3,8 +3,8 @@ package com.cycling.data.local.mediastore
 import android.content.ContentUris
 import android.content.Context
 import android.database.Cursor
+import android.net.Uri
 import android.provider.MediaStore
-import android.util.Log
 import com.cycling.domain.model.Album
 import com.cycling.domain.model.Artist
 import com.cycling.domain.model.Song
@@ -16,7 +16,7 @@ import javax.inject.Singleton
 class MediaStoreHelper @Inject constructor(
     @ApplicationContext private val context: Context
 ) {
-    fun queryAllSongs(): List<Song> {
+    fun queryAllSongs(excludedPaths: List<String> = emptyList()): List<Song> {
         val songs = mutableListOf<Song>()
         val projection = arrayOf(
             MediaStore.Audio.Media._ID,
@@ -45,7 +45,13 @@ class MediaStoreHelper @Inject constructor(
             sortOrder
         )?.use { cursor ->
             while (cursor.moveToNext()) {
-                songs.add(cursor.toSong())
+                val song = cursor.toSong()
+                val isExcluded = excludedPaths.any { excludedPath ->
+                    song.path.startsWith(excludedPath)
+                }
+                if (!isExcluded) {
+                    songs.add(song)
+                }
             }
         }
 
@@ -58,7 +64,6 @@ class MediaStoreHelper @Inject constructor(
             MediaStore.Audio.Albums._ID,
             MediaStore.Audio.Albums.ALBUM,
             MediaStore.Audio.Albums.ARTIST,
-            MediaStore.Audio.Albums.ALBUM_ART,
             MediaStore.Audio.Albums.NUMBER_OF_SONGS,
             MediaStore.Audio.Albums.FIRST_YEAR,
             MediaStore.Audio.Albums.LAST_YEAR
@@ -100,11 +105,41 @@ class MediaStoreHelper @Inject constructor(
             sortOrder
         )?.use { cursor ->
             while (cursor.moveToNext()) {
-                artists.add(cursor.toArtist())
+                val artist = cursor.toArtist()
+                val artistArt = queryArtistArt(artist.id)
+                artists.add(artist.copy(artistArt = artistArt))
             }
         }
 
         return artists
+    }
+
+    private fun queryArtistArt(artistId: Long): String? {
+        val projection = arrayOf(
+            MediaStore.Audio.Albums._ID
+        )
+
+        val selection = "${MediaStore.Audio.Albums.ARTIST_ID} = ?"
+        val selectionArgs = arrayOf(artistId.toString())
+        val sortOrder = "${MediaStore.Audio.Albums.ALBUM} ASC"
+
+        context.contentResolver.query(
+            MediaStore.Audio.Albums.EXTERNAL_CONTENT_URI,
+            projection,
+            selection,
+            selectionArgs,
+            sortOrder
+        )?.use { cursor ->
+            if (cursor.moveToFirst()) {
+                val albumId = cursor.getLong(cursor.getColumnIndexOrThrow(MediaStore.Audio.Albums._ID))
+                return ContentUris.withAppendedId(
+                    MediaStore.Audio.Albums.EXTERNAL_CONTENT_URI,
+                    albumId
+                ).toString()
+            }
+        }
+
+        return null
     }
 
     fun querySongsByAlbum(albumId: Long): List<Song> {
@@ -217,6 +252,12 @@ class MediaStoreHelper @Inject constructor(
     }
 
     private fun Cursor.toSong(): Song {
+        val albumId = getLong(getColumnIndexOrThrow(MediaStore.Audio.Media.ALBUM_ID))
+        val albumArtUri = ContentUris.withAppendedId(
+            MediaStore.Audio.Albums.EXTERNAL_CONTENT_URI,
+            albumId
+        ).toString()
+        
         return Song(
             id = getLong(getColumnIndexOrThrow(MediaStore.Audio.Media._ID)),
             title = getString(getColumnIndexOrThrow(MediaStore.Audio.Media.TITLE)) ?: UNKNOWN,
@@ -224,21 +265,28 @@ class MediaStoreHelper @Inject constructor(
             album = getString(getColumnIndexOrThrow(MediaStore.Audio.Media.ALBUM)) ?: UNKNOWN,
             duration = getLong(getColumnIndexOrThrow(MediaStore.Audio.Media.DURATION)),
             path = getString(getColumnIndexOrThrow(MediaStore.Audio.Media.DATA)) ?: "",
-            albumId = getLong(getColumnIndexOrThrow(MediaStore.Audio.Media.ALBUM_ID)),
+            albumId = albumId,
             artistId = getLong(getColumnIndexOrThrow(MediaStore.Audio.Media.ARTIST_ID)),
             dateAdded = getLong(getColumnIndexOrThrow(MediaStore.Audio.Media.DATE_ADDED)),
             dateModified = getLong(getColumnIndexOrThrow(MediaStore.Audio.Media.DATE_MODIFIED)),
             size = getLong(getColumnIndexOrThrow(MediaStore.Audio.Media.SIZE)),
-            mimeType = getString(getColumnIndexOrThrow(MediaStore.Audio.Media.MIME_TYPE)) ?: ""
+            mimeType = getString(getColumnIndexOrThrow(MediaStore.Audio.Media.MIME_TYPE)) ?: "",
+            albumArt = albumArtUri
         )
     }
 
     private fun Cursor.toAlbum(): Album {
+        val albumId = getLong(getColumnIndexOrThrow(MediaStore.Audio.Albums._ID))
+        val albumArtUri = ContentUris.withAppendedId(
+            MediaStore.Audio.Albums.EXTERNAL_CONTENT_URI,
+            albumId
+        ).toString()
+        
         return Album(
-            id = getLong(getColumnIndexOrThrow(MediaStore.Audio.Albums._ID)),
+            id = albumId,
             name = getString(getColumnIndexOrThrow(MediaStore.Audio.Albums.ALBUM)) ?: UNKNOWN,
             artist = getString(getColumnIndexOrThrow(MediaStore.Audio.Albums.ARTIST)) ?: UNKNOWN,
-            albumArt = getString(getColumnIndexOrThrow(MediaStore.Audio.Albums.ALBUM_ART)),
+            albumArt = albumArtUri,
             numberOfSongs = getInt(getColumnIndexOrThrow(MediaStore.Audio.Albums.NUMBER_OF_SONGS)),
             firstYear = getInt(getColumnIndexOrThrow(MediaStore.Audio.Albums.FIRST_YEAR)),
             lastYear = getInt(getColumnIndexOrThrow(MediaStore.Audio.Albums.LAST_YEAR))

@@ -2,6 +2,8 @@ package com.cycling.data.di
 
 import android.content.Context
 import androidx.room.Room
+import androidx.room.migration.Migration
+import androidx.sqlite.db.SupportSQLiteDatabase
 import com.cycling.data.local.dao.PlaylistDao
 import com.cycling.data.local.dao.SongDao
 import com.cycling.data.local.database.AppDatabase
@@ -16,6 +18,11 @@ import javax.inject.Singleton
 @InstallIn(SingletonComponent::class)
 object DatabaseModule {
 
+    private val MIGRATION_2_3 = object : Migration(2, 3) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+        }
+    }
+
     @Provides
     @Singleton
     fun provideAppDatabase(
@@ -25,7 +32,9 @@ object DatabaseModule {
             context,
             AppDatabase::class.java,
             "sonic_database"
-        ).build()
+        )
+            .addMigrations(MIGRATION_2_3)
+            .build()
     }
 
     @Provides

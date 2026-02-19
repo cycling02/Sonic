@@ -20,7 +20,8 @@ fun SongEntity.toDomain(): Song {
         dateAdded = dateAdded,
         dateModified = dateModified,
         size = size,
-        mimeType = mimeType
+        mimeType = mimeType,
+        albumArt = albumArt
     )
 }
 
@@ -37,7 +38,8 @@ fun Song.toEntity(): SongEntity {
         dateAdded = dateAdded,
         dateModified = dateModified,
         size = size,
-        mimeType = mimeType
+        mimeType = mimeType,
+        albumArt = albumArt
     )
 }
 

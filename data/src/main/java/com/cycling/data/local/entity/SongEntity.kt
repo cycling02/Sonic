@@ -17,5 +17,6 @@ data class SongEntity(
     val dateAdded: Long,
     val dateModified: Long,
     val size: Long,
-    val mimeType: String
+    val mimeType: String,
+    val albumArt: String? = null
 )

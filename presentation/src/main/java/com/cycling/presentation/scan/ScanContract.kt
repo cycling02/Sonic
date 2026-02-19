@@ -9,7 +9,9 @@ data class ScanUiState(
     val songsProcessed: Int = 0,
     val totalSongs: Int = 0,
     val scanResult: ScanResult? = null,
-    val error: String? = null
+    val error: String? = null,
+    val hasStoragePermission: Boolean = false,
+    val shouldRequestPermission: Boolean = false
 )
 
 sealed interface ScanStep {
@@ -24,9 +26,12 @@ sealed interface ScanIntent {
     data object StartScan : ScanIntent
     data object ResetScan : ScanIntent
     data object NavigateBack : ScanIntent
+    data object RequestPermission : ScanIntent
+    data class PermissionResult(val granted: Boolean) : ScanIntent
 }
 
 sealed interface ScanEffect {
     data class ShowToast(val message: String) : ScanEffect
     data object NavigateBack : ScanEffect
+    data object RequestStoragePermission : ScanEffect
 }

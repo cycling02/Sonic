@@ -57,10 +57,10 @@ dependencies {
 
     implementation(libs.androidx.hilt.android)
     ksp(libs.androidx.hilt.compiler)
-    implementation("androidx.hilt:hilt-navigation-compose:1.2.0")
+    implementation(libs.androidx.hilt.navigation.compose)
     
-    implementation("androidx.navigation:navigation-compose:2.8.4")
-    implementation("androidx.lifecycle:lifecycle-runtime-compose:2.8.7")
+    implementation(libs.androidx.navigation.compose)
+    implementation(libs.androidx.lifecycle.runtime.compose)
 
     //room
     implementation(libs.androidx.room.runtime)

@@ -39,6 +39,36 @@ class ScanViewModel @Inject constructor(
             is ScanIntent.StartScan -> startScan()
             is ScanIntent.ResetScan -> resetScan()
             is ScanIntent.NavigateBack -> navigateBack()
+            is ScanIntent.RequestPermission -> requestPermission()
+            is ScanIntent.PermissionResult -> handlePermissionResult(intent.granted)
+        }
+    }
+
+    fun checkAndRequestPermission(hasPermission: Boolean) {
+        if (hasPermission) {
+            _uiState.update { it.copy(hasStoragePermission = true, shouldRequestPermission = false) }
+        } else {
+            _uiState.update { it.copy(hasStoragePermission = false, shouldRequestPermission = true) }
+        }
+    }
+
+    private fun requestPermission() {
+        viewModelScope.launch {
+            _uiEffect.emit(ScanEffect.RequestStoragePermission)
+        }
+    }
+
+    private fun handlePermissionResult(granted: Boolean) {
+        if (granted) {
+            _uiState.update { it.copy(hasStoragePermission = true, shouldRequestPermission = false) }
+        } else {
+            _uiState.update { 
+                it.copy(
+                    hasStoragePermission = false, 
+                    shouldRequestPermission = false,
+                    error = "需要存储权限才能扫描音乐文件"
+                )
+            }
         }
     }
 

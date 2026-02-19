@@ -1,97 +1,138 @@
 package com.cycling.presentation.settings
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.ChevronRight
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Folder
+import androidx.compose.material.icons.filled.Key
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.Dp
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.cycling.domain.model.ThemeMode
+import com.cycling.presentation.components.IOSInsetGrouped
+import com.cycling.presentation.components.IOSListItem
+import com.cycling.presentation.components.IOSTopAppBar
+import com.cycling.presentation.theme.SonicColors
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsScreen(
     onNavigateBack: () -> Unit,
-    onNavigateToScan: () -> Unit
+    onNavigateToScan: () -> Unit,
+    onNavigateToExcludeFolders: () -> Unit,
+    onNavigateToApiKeyConfig: () -> Unit = {},
+    viewModel: SettingsViewModel = hiltViewModel(),
+    bottomPadding: Dp = 0.dp
 ) {
+    val themeMode by viewModel.themeMode.collectAsStateWithLifecycle()
+    val hasApiKey by viewModel.hasApiKey.collectAsStateWithLifecycle()
+
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = { Text("设置") },
-                navigationIcon = {
-                    IconButton(onClick = onNavigateBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "返回")
-                    }
-                }
+            IOSTopAppBar(
+                title = "设置",
+                onNavigateBack = onNavigateBack
             )
-        }
+        },
+        containerColor = MaterialTheme.colorScheme.background
     ) { paddingValues ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
         ) {
-            SettingsItem(
-                title = "扫描本地音乐",
-                description = "扫描设备上的音乐文件",
-                icon = Icons.Default.Refresh,
-                onClick = onNavigateToScan
-            )
+            Spacer(modifier = Modifier.height(8.dp))
+
+            IOSInsetGrouped {
+                IOSListItem(
+                    title = "扫描本地音乐",
+                    icon = Icons.Default.Refresh,
+                    iconBackgroundColor = SonicColors.Blue,
+                    onClick = onNavigateToScan,
+                    showDivider = true
+                )
+                IOSListItem(
+                    title = "排除文件夹",
+                    icon = Icons.Default.Folder,
+                    iconBackgroundColor = SonicColors.Orange,
+                    onClick = onNavigateToExcludeFolders,
+                    showDivider = false
+                )
+            }
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            IOSInsetGrouped {
+                IOSListItem(
+                    title = "DeepSeek API 配置",
+                    subtitle = if (hasApiKey) "已配置" else "未配置",
+                    icon = Icons.Default.Key,
+                    iconBackgroundColor = SonicColors.Purple,
+                    onClick = onNavigateToApiKeyConfig,
+                    showDivider = false
+                )
+            }
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            IOSInsetGrouped {
+                ThemeOptionItem(
+                    text = "跟随系统",
+                    selected = themeMode == ThemeMode.SYSTEM,
+                    onClick = { viewModel.setThemeMode(ThemeMode.SYSTEM) },
+                    showDivider = true
+                )
+                ThemeOptionItem(
+                    text = "浅色模式",
+                    selected = themeMode == ThemeMode.LIGHT,
+                    onClick = { viewModel.setThemeMode(ThemeMode.LIGHT) },
+                    showDivider = true
+                )
+                ThemeOptionItem(
+                    text = "深色模式",
+                    selected = themeMode == ThemeMode.DARK,
+                    onClick = { viewModel.setThemeMode(ThemeMode.DARK) },
+                    showDivider = false
+                )
+            }
         }
     }
 }
 
 @Composable
-private fun SettingsItem(
-    title: String,
-    description: String,
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
-    onClick: () -> Unit
+private fun ThemeOptionItem(
+    text: String,
+    selected: Boolean,
+    onClick: () -> Unit,
+    showDivider: Boolean
 ) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable(onClick = onClick)
-            .padding(16.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Icon(
-            imageVector = icon,
-            contentDescription = null,
-            tint = MaterialTheme.colorScheme.primary
-        )
-        Spacer(modifier = Modifier.width(16.dp))
-        Column(modifier = Modifier.weight(1f)) {
-            Text(
-                text = title,
-                style = MaterialTheme.typography.bodyLarge
-            )
-            Text(
-                text = description,
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
+    IOSListItem(
+        title = text,
+        onClick = onClick,
+        showDivider = showDivider,
+        trailing = {
+            if (selected) {
+                Icon(
+                    imageVector = Icons.Default.Check,
+                    contentDescription = null,
+                    tint = SonicColors.Green,
+                    modifier = Modifier.size(20.dp)
+                )
+            }
         }
-        Icon(
-            imageVector = Icons.Default.ChevronRight,
-            contentDescription = null,
-            tint = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-    }
+    )
 }
