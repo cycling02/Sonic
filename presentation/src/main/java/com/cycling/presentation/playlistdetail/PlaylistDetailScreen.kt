@@ -24,6 +24,9 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -32,7 +35,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.Dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.cycling.domain.model.Song
 import com.cycling.presentation.components.IOSTopAppBar
+import com.cycling.presentation.components.MenuItem
 import com.cycling.presentation.components.PlayActionButtons
 import com.cycling.presentation.components.SongListItem
 import com.cycling.presentation.components.formatDuration
@@ -120,11 +125,13 @@ fun PlaylistDetailScreen(
                     }
                 } else {
                     itemsIndexed(uiState.songs) { index, song ->
-                        SongListItem(
+                        SongItemWithMenu(
                             song = song,
                             showDivider = index < uiState.songs.size - 1,
                             subtitle = formatDuration(song.duration),
-                            showDuration = false
+                            onRemoveSong = { songId ->
+                                viewModel.handleIntent(PlaylistDetailIntent.RemoveSong(songId))
+                            }
                         )
                     }
                 }
@@ -185,4 +192,32 @@ private fun PlaylistHeader(
 
         Spacer(modifier = Modifier.height(16.dp))
     }
+}
+
+@Composable
+private fun SongItemWithMenu(
+    song: Song,
+    showDivider: Boolean,
+    subtitle: String,
+    onRemoveSong: (Long) -> Unit
+) {
+    var menuExpanded by remember { mutableStateOf(false) }
+
+    SongListItem(
+        song = song,
+        showDivider = showDivider,
+        subtitle = subtitle,
+        showDuration = false,
+        showMoreButton = true,
+        moreMenuExpanded = menuExpanded,
+        onMoreClick = { menuExpanded = true },
+        onMoreDismiss = { menuExpanded = false },
+        moreMenuItems = listOf(
+            MenuItem(
+                name = "从播放列表移除",
+                isDestructive = true,
+                onClick = { onRemoveSong(song.id) }
+            )
+        )
+    )
 }

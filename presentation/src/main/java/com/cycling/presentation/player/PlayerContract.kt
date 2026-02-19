@@ -13,7 +13,8 @@ data class PlayerUiState(
     val queueIndex: Int = -1,
     val repeatMode: RepeatMode = RepeatMode.OFF,
     val shuffleMode: Boolean = false,
-    val showQueue: Boolean = false
+    val showQueue: Boolean = false,
+    val isFavorite: Boolean = false
 )
 
 sealed interface PlayerIntent {
@@ -29,6 +30,7 @@ sealed interface PlayerIntent {
     data object ClearQueue : PlayerIntent
     data object ToggleQueue : PlayerIntent
     data object UpdateProgress : PlayerIntent
+    data object ToggleFavorite : PlayerIntent
 }
 
 sealed interface PlayerEffect {

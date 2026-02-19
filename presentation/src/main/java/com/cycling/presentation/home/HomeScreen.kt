@@ -16,10 +16,14 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.QueueMusic
 import androidx.compose.material.icons.filled.Album
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.MusicNote
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.QueueMusic
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.TrendingUp
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -59,6 +63,10 @@ fun HomeScreen(
     onNavigateToAlbumDetail: (Long) -> Unit,
     onNavigateToArtistDetail: (Long) -> Unit,
     onNavigateToPlayer: (Long) -> Unit,
+    onNavigateToFavorites: () -> Unit,
+    onNavigateToRecentlyPlayed: () -> Unit,
+    onNavigateToMostPlayed: () -> Unit,
+    onNavigateToSearch: () -> Unit,
     bottomPadding: Dp = 0.dp
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -76,6 +84,10 @@ fun HomeScreen(
                 is HomeEffect.NavigateToAlbumDetail -> onNavigateToAlbumDetail(effect.albumId)
                 is HomeEffect.NavigateToArtistDetail -> onNavigateToArtistDetail(effect.artistId)
                 is HomeEffect.NavigateToPlayer -> onNavigateToPlayer(effect.songId)
+                is HomeEffect.NavigateToFavorites -> onNavigateToFavorites()
+                is HomeEffect.NavigateToRecentlyPlayed -> onNavigateToRecentlyPlayed()
+                is HomeEffect.NavigateToMostPlayed -> onNavigateToMostPlayed()
+                is HomeEffect.NavigateToSearch -> onNavigateToSearch()
                 is HomeEffect.ShowToast -> {}
             }
         }
@@ -87,6 +99,13 @@ fun HomeScreen(
                 title = "音乐",
                 isLarge = scrollState.value < 10,
                 actions = {
+                    IconButton(onClick = { viewModel.handleIntent(HomeIntent.NavigateToSearch) }) {
+                        Icon(
+                            imageVector = Icons.Default.Search,
+                            contentDescription = "搜索",
+                            tint = MaterialTheme.colorScheme.primary
+                        )
+                    }
                     IconButton(onClick = { viewModel.handleIntent(HomeIntent.NavigateToSettings) }) {
                         Icon(
                             imageVector = Icons.Default.Settings,
@@ -123,13 +142,32 @@ fun HomeScreen(
                     onSongsClick = { viewModel.handleIntent(HomeIntent.NavigateToSongs) },
                     onAlbumsClick = { viewModel.handleIntent(HomeIntent.NavigateToAlbums) },
                     onArtistsClick = { viewModel.handleIntent(HomeIntent.NavigateToArtists) },
-                    onPlaylistsClick = { viewModel.handleIntent(HomeIntent.NavigateToPlaylists) }
+                    onPlaylistsClick = { viewModel.handleIntent(HomeIntent.NavigateToPlaylists) },
+                    onFavoritesClick = { viewModel.handleIntent(HomeIntent.NavigateToFavorites) },
+                    onRecentlyPlayedClick = { viewModel.handleIntent(HomeIntent.NavigateToRecentlyPlayed) },
+                    onMostPlayedClick = { viewModel.handleIntent(HomeIntent.NavigateToMostPlayed) }
                 )
+
+                if (uiState.favoriteSongs.isNotEmpty()) {
+                    IOSSectionHeader(title = "喜欢的歌曲")
+                    HorizontalSongSection(
+                        songs = uiState.favoriteSongs,
+                        onSongClick = { viewModel.handleIntent(HomeIntent.SongClick(it)) }
+                    )
+                }
 
                 if (uiState.recentlyPlayed.isNotEmpty()) {
                     IOSSectionHeader(title = "最近播放")
                     HorizontalSongSection(
                         songs = uiState.recentlyPlayed,
+                        onSongClick = { viewModel.handleIntent(HomeIntent.SongClick(it)) }
+                    )
+                }
+
+                if (uiState.mostPlayed.isNotEmpty()) {
+                    IOSSectionHeader(title = "最常播放")
+                    HorizontalSongSection(
+                        songs = uiState.mostPlayed,
                         onSongClick = { viewModel.handleIntent(HomeIntent.SongClick(it)) }
                     )
                 }
@@ -170,7 +208,10 @@ private fun QuickAccessSection(
     onSongsClick: () -> Unit,
     onAlbumsClick: () -> Unit,
     onArtistsClick: () -> Unit,
-    onPlaylistsClick: () -> Unit
+    onPlaylistsClick: () -> Unit,
+    onFavoritesClick: () -> Unit,
+    onRecentlyPlayedClick: () -> Unit,
+    onMostPlayedClick: () -> Unit
 ) {
     IOSInsetGrouped {
         IOSListItem(
@@ -199,6 +240,27 @@ private fun QuickAccessSection(
             icon = Icons.AutoMirrored.Filled.QueueMusic,
             iconBackgroundColor = SonicColors.Green,
             onClick = onPlaylistsClick,
+            showDivider = true
+        )
+        IOSListItem(
+            title = "喜欢的歌曲",
+            icon = Icons.Default.Favorite,
+            iconBackgroundColor = SonicColors.Pink,
+            onClick = onFavoritesClick,
+            showDivider = true
+        )
+        IOSListItem(
+            title = "最近播放",
+            icon = Icons.Default.History,
+            iconBackgroundColor = SonicColors.Orange,
+            onClick = onRecentlyPlayedClick,
+            showDivider = true
+        )
+        IOSListItem(
+            title = "最常播放",
+            icon = Icons.Default.TrendingUp,
+            iconBackgroundColor = SonicColors.Purple,
+            onClick = onMostPlayedClick,
             showDivider = false
         )
     }

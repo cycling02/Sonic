@@ -41,4 +41,16 @@ sealed interface Screen {
 
     @Serializable
     data object ApiKeyConfig : Screen
+
+    @Serializable
+    data object Favorites : Screen
+
+    @Serializable
+    data object RecentlyPlayed : Screen
+
+    @Serializable
+    data object MostPlayed : Screen
+
+    @Serializable
+    data object Search : Screen
 }

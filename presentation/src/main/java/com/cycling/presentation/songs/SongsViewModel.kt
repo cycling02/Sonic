@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.cycling.domain.model.Song
 import com.cycling.domain.model.SortOrder
 import com.cycling.domain.model.ViewMode
+import com.cycling.domain.repository.PlaylistRepository
 import com.cycling.domain.repository.SongRepository
 import com.cycling.domain.repository.SongsPreferencesRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -21,7 +22,8 @@ import javax.inject.Inject
 @HiltViewModel
 class SongsViewModel @Inject constructor(
     private val songRepository: SongRepository,
-    private val songsPreferencesRepository: SongsPreferencesRepository
+    private val songsPreferencesRepository: SongsPreferencesRepository,
+    private val playlistRepository: PlaylistRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(SongsUiState())
@@ -33,6 +35,7 @@ class SongsViewModel @Inject constructor(
     init {
         loadPreferences()
         loadSongs()
+        loadPlaylists()
     }
 
     fun handleIntent(intent: SongsIntent) {
@@ -41,6 +44,10 @@ class SongsViewModel @Inject constructor(
             is SongsIntent.ToggleViewMode -> toggleViewMode()
             is SongsIntent.ChangeSortOrder -> changeSortOrder(intent.sortOrder)
             is SongsIntent.SongClick -> onSongClick(intent.song)
+            is SongsIntent.ShowAddToPlaylistDialog -> showAddToPlaylistDialog(intent.song)
+            is SongsIntent.AddToPlaylist -> addToPlaylist(intent.playlistId)
+            is SongsIntent.DismissAddToPlaylistDialog -> dismissAddToPlaylistDialog()
+            is SongsIntent.CreatePlaylistAndAddSong -> createPlaylistAndAddSong(intent.name)
         }
     }
 
@@ -86,6 +93,41 @@ class SongsViewModel @Inject constructor(
     private fun onSongClick(song: Song) {
         viewModelScope.launch {
             _uiEffect.emit(SongsEffect.NavigateToPlayer(song.id))
+        }
+    }
+
+    private fun loadPlaylists() {
+        viewModelScope.launch {
+            playlistRepository.getAllPlaylists().collect { playlists ->
+                _uiState.update { it.copy(playlists = playlists) }
+            }
+        }
+    }
+
+    private fun showAddToPlaylistDialog(song: Song) {
+        _uiState.update { it.copy(songToAdd = song, showAddToPlaylistDialog = true) }
+    }
+
+    private fun dismissAddToPlaylistDialog() {
+        _uiState.update { it.copy(songToAdd = null, showAddToPlaylistDialog = false) }
+    }
+
+    private fun addToPlaylist(playlistId: Long) {
+        val song = _uiState.value.songToAdd ?: return
+        viewModelScope.launch {
+            playlistRepository.addSongToPlaylist(playlistId, song.id)
+            _uiEffect.emit(SongsEffect.ShowToast("已添加到播放列表"))
+            dismissAddToPlaylistDialog()
+        }
+    }
+
+    private fun createPlaylistAndAddSong(name: String) {
+        val song = _uiState.value.songToAdd ?: return
+        viewModelScope.launch {
+            val playlistId = playlistRepository.createPlaylist(name)
+            playlistRepository.addSongToPlaylist(playlistId, song.id)
+            _uiEffect.emit(SongsEffect.ShowToast("已创建播放列表并添加歌曲"))
+            dismissAddToPlaylistDialog()
         }
     }
 }

@@ -3,6 +3,7 @@ package com.cycling.data.repository
 import com.cycling.data.api.DeepSeekApiService
 import com.cycling.data.api.dto.DeepSeekRequest
 import com.cycling.data.store.ApiKeyStore
+import com.cycling.data.store.AiInfoCacheStore
 import com.cycling.domain.model.AiInfo
 import com.cycling.domain.model.AiInfoType
 import com.cycling.domain.repository.AiRepository
@@ -12,7 +13,8 @@ import javax.inject.Singleton
 @Singleton
 class AiRepositoryImpl @Inject constructor(
     private val apiKeyStore: ApiKeyStore,
-    private val deepSeekApiService: DeepSeekApiService
+    private val deepSeekApiService: DeepSeekApiService,
+    private val aiInfoCacheStore: AiInfoCacheStore
 ) : AiRepository {
 
     override suspend fun getApiKey(): String? = apiKeyStore.getApiKey()
@@ -21,25 +23,64 @@ class AiRepositoryImpl @Inject constructor(
 
     override suspend fun hasApiKey(): Boolean = apiKeyStore.hasApiKey()
 
+    override suspend fun getCachedSongInfo(songTitle: String, artist: String): AiInfo? {
+        return aiInfoCacheStore.getSongInfo(songTitle, artist)
+    }
+
+    override suspend fun getCachedArtistInfo(artistName: String): AiInfo? {
+        return aiInfoCacheStore.getArtistInfo(artistName)
+    }
+
+    override suspend fun getCachedAlbumInfo(albumTitle: String, artist: String): AiInfo? {
+        return aiInfoCacheStore.getAlbumInfo(albumTitle, artist)
+    }
+
     override suspend fun getSongInfo(songTitle: String, artist: String): Result<AiInfo> {
+        val cached = getCachedSongInfo(songTitle, artist)
+        if (cached != null) {
+            return Result.success(cached)
+        }
+        
         val apiKey = getApiKey() ?: return Result.failure(Exception("API Key 未配置"))
         
         val prompt = buildSongPrompt(songTitle, artist)
-        return callApi(apiKey, prompt, AiInfoType.SONG, songTitle)
+        return callApi(apiKey, prompt, AiInfoType.SONG, songTitle).also { result ->
+            result.onSuccess { info ->
+                aiInfoCacheStore.saveSongInfo(songTitle, artist, info)
+            }
+        }
     }
 
     override suspend fun getArtistInfo(artistName: String): Result<AiInfo> {
+        val cached = getCachedArtistInfo(artistName)
+        if (cached != null) {
+            return Result.success(cached)
+        }
+        
         val apiKey = getApiKey() ?: return Result.failure(Exception("API Key 未配置"))
         
         val prompt = buildArtistPrompt(artistName)
-        return callApi(apiKey, prompt, AiInfoType.ARTIST, artistName)
+        return callApi(apiKey, prompt, AiInfoType.ARTIST, artistName).also { result ->
+            result.onSuccess { info ->
+                aiInfoCacheStore.saveArtistInfo(artistName, info)
+            }
+        }
     }
 
     override suspend fun getAlbumInfo(albumTitle: String, artist: String): Result<AiInfo> {
+        val cached = getCachedAlbumInfo(albumTitle, artist)
+        if (cached != null) {
+            return Result.success(cached)
+        }
+        
         val apiKey = getApiKey() ?: return Result.failure(Exception("API Key 未配置"))
         
         val prompt = buildAlbumPrompt(albumTitle, artist)
-        return callApi(apiKey, prompt, AiInfoType.ALBUM, albumTitle)
+        return callApi(apiKey, prompt, AiInfoType.ALBUM, albumTitle).also { result ->
+            result.onSuccess { info ->
+                aiInfoCacheStore.saveAlbumInfo(albumTitle, artist, info)
+            }
+        }
     }
 
     private suspend fun callApi(

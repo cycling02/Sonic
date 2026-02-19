@@ -9,4 +9,6 @@ interface ArtistRepository {
     suspend fun getArtistById(id: Long): Artist?
 
     suspend fun getArtistCount(): Int
+
+    fun searchArtists(query: String): Flow<List<Artist>>
 }

@@ -21,7 +21,10 @@ fun SongEntity.toDomain(): Song {
         dateModified = dateModified,
         size = size,
         mimeType = mimeType,
-        albumArt = albumArt
+        albumArt = albumArt,
+        isFavorite = isFavorite,
+        playCount = playCount,
+        lastPlayedAt = lastPlayedAt
     )
 }
 
@@ -39,7 +42,10 @@ fun Song.toEntity(): SongEntity {
         dateModified = dateModified,
         size = size,
         mimeType = mimeType,
-        albumArt = albumArt
+        albumArt = albumArt,
+        isFavorite = isFavorite,
+        playCount = playCount,
+        lastPlayedAt = lastPlayedAt
     )
 }
 

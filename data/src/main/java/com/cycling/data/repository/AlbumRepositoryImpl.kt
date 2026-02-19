@@ -45,4 +45,16 @@ class AlbumRepositoryImpl @Inject constructor(
         }
         return cachedAlbums.size
     }
+
+    override fun searchAlbums(query: String): Flow<List<Album>> = flow {
+        if (cachedAlbums.isEmpty()) {
+            cachedAlbums = mediaStoreHelper.queryAllAlbums()
+        }
+        val lowerCaseQuery = query.lowercase()
+        val results = cachedAlbums.filter { album ->
+            album.name.lowercase().contains(lowerCaseQuery) ||
+            album.artist.lowercase().contains(lowerCaseQuery)
+        }
+        emit(results)
+    }
 }

@@ -17,12 +17,16 @@ import com.cycling.presentation.albums.AlbumsScreen
 import com.cycling.presentation.artistdetail.ArtistDetailScreen
 import com.cycling.presentation.artists.ArtistsScreen
 import com.cycling.presentation.excludefolders.ExcludeFoldersScreen
+import com.cycling.presentation.favorites.FavoritesScreen
 import com.cycling.presentation.home.HomeScreen
+import com.cycling.presentation.mostplayed.MostPlayedScreen
 import com.cycling.presentation.player.PlayerScreen
 import com.cycling.presentation.player.PlayerViewModel
 import com.cycling.presentation.playlistdetail.PlaylistDetailScreen
 import com.cycling.presentation.playlists.PlaylistsScreen
+import com.cycling.presentation.recentlyplayed.RecentlyPlayedScreen
 import com.cycling.presentation.scan.ScanScreen
+import com.cycling.presentation.search.SearchScreen
 import com.cycling.presentation.settings.ApiKeyConfigScreen
 import com.cycling.presentation.settings.SettingsScreen
 import com.cycling.presentation.songs.SongsScreen
@@ -47,7 +51,11 @@ fun AppNavGraph(
                 onNavigateToScan = { navController.navigate(Screen.Scan) },
                 onNavigateToAlbumDetail = { albumId -> navController.navigate(Screen.AlbumDetail(albumId)) },
                 onNavigateToArtistDetail = { artistId -> navController.navigate(Screen.ArtistDetail(artistId)) },
-                onNavigateToPlayer = { songId -> }
+                onNavigateToPlayer = { songId -> },
+                onNavigateToFavorites = { navController.navigate(Screen.Favorites) },
+                onNavigateToRecentlyPlayed = { navController.navigate(Screen.RecentlyPlayed) },
+                onNavigateToMostPlayed = { navController.navigate(Screen.MostPlayed) },
+                onNavigateToSearch = { navController.navigate(Screen.Search) }
             )
         }
 
@@ -138,6 +146,37 @@ fun AppNavGraph(
         composable<Screen.ApiKeyConfig> {
             ApiKeyConfigScreen(
                 onNavigateBack = { navController.popBackStack() }
+            )
+        }
+
+        composable<Screen.Favorites> {
+            FavoritesScreen(
+                onNavigateBack = { navController.popBackStack() },
+                onNavigateToPlayer = { songId -> }
+            )
+        }
+
+        composable<Screen.RecentlyPlayed> {
+            RecentlyPlayedScreen(
+                onNavigateBack = { navController.popBackStack() },
+                onNavigateToPlayer = { songId -> }
+            )
+        }
+
+        composable<Screen.MostPlayed> {
+            MostPlayedScreen(
+                onNavigateBack = { navController.popBackStack() },
+                onNavigateToPlayer = { songId -> }
+            )
+        }
+
+        composable<Screen.Search> {
+            SearchScreen(
+                onNavigateBack = { navController.popBackStack() },
+                onNavigateToPlayer = { songId -> },
+                onNavigateToAlbumDetail = { albumId -> navController.navigate(Screen.AlbumDetail(albumId)) },
+                onNavigateToArtistDetail = { artistId -> navController.navigate(Screen.ArtistDetail(artistId)) },
+                playerViewModel = playerViewModel
             )
         }
     }

@@ -5,6 +5,9 @@ import androidx.lifecycle.viewModelScope
 import com.cycling.domain.usecase.GetAllAlbumsUseCase
 import com.cycling.domain.usecase.GetAllArtistsUseCase
 import com.cycling.domain.usecase.GetAllSongsUseCase
+import com.cycling.domain.usecase.GetFavoriteSongsUseCase
+import com.cycling.domain.usecase.GetMostPlayedSongsUseCase
+import com.cycling.domain.usecase.GetRecentlyPlayedSongsUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -21,7 +24,10 @@ import javax.inject.Inject
 class HomeViewModel @Inject constructor(
     private val getAllSongsUseCase: GetAllSongsUseCase,
     private val getAllAlbumsUseCase: GetAllAlbumsUseCase,
-    private val getAllArtistsUseCase: GetAllArtistsUseCase
+    private val getAllArtistsUseCase: GetAllArtistsUseCase,
+    private val getFavoriteSongsUseCase: GetFavoriteSongsUseCase,
+    private val getMostPlayedSongsUseCase: GetMostPlayedSongsUseCase,
+    private val getRecentlyPlayedSongsUseCase: GetRecentlyPlayedSongsUseCase
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(HomeUiState())
@@ -33,6 +39,9 @@ class HomeViewModel @Inject constructor(
     private var songsLoaded = false
     private var albumsLoaded = false
     private var artistsLoaded = false
+    private var favoritesLoaded = false
+    private var mostPlayedLoaded = false
+    private var recentlyPlayedLoaded = false
 
     init {
         loadData()
@@ -50,6 +59,10 @@ class HomeViewModel @Inject constructor(
             is HomeIntent.NavigateToPlaylists -> navigateTo(HomeEffect.NavigateToPlaylists)
             is HomeIntent.NavigateToSettings -> navigateTo(HomeEffect.NavigateToSettings)
             is HomeIntent.NavigateToScan -> navigateTo(HomeEffect.NavigateToScan)
+            is HomeIntent.NavigateToFavorites -> navigateTo(HomeEffect.NavigateToFavorites)
+            is HomeIntent.NavigateToRecentlyPlayed -> navigateTo(HomeEffect.NavigateToRecentlyPlayed)
+            is HomeIntent.NavigateToMostPlayed -> navigateTo(HomeEffect.NavigateToMostPlayed)
+            is HomeIntent.NavigateToSearch -> navigateTo(HomeEffect.NavigateToSearch)
         }
     }
 
@@ -57,6 +70,9 @@ class HomeViewModel @Inject constructor(
         songsLoaded = false
         albumsLoaded = false
         artistsLoaded = false
+        favoritesLoaded = false
+        mostPlayedLoaded = false
+        recentlyPlayedLoaded = false
         
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, error = null) }
@@ -65,9 +81,7 @@ class HomeViewModel @Inject constructor(
                 getAllSongsUseCase().collectLatest { songs ->
                     _uiState.update { state ->
                         state.copy(
-                            recentlyPlayed = songs.sortedByDescending { it.dateModified }.take(10),
-                            recentlyAdded = songs.sortedByDescending { it.dateAdded }.take(10),
-                            mostPlayed = songs.take(10)
+                            recentlyAdded = songs.sortedByDescending { it.dateAdded }.take(10)
                         )
                     }
                     songsLoaded = true
@@ -94,11 +108,41 @@ class HomeViewModel @Inject constructor(
                     checkAllDataLoaded()
                 }
             }
+
+            launch {
+                getFavoriteSongsUseCase().collectLatest { favorites ->
+                    _uiState.update { state ->
+                        state.copy(favoriteSongs = favorites.take(10))
+                    }
+                    favoritesLoaded = true
+                    checkAllDataLoaded()
+                }
+            }
+
+            launch {
+                getMostPlayedSongsUseCase().collectLatest { mostPlayed ->
+                    _uiState.update { state ->
+                        state.copy(mostPlayed = mostPlayed.take(10))
+                    }
+                    mostPlayedLoaded = true
+                    checkAllDataLoaded()
+                }
+            }
+
+            launch {
+                getRecentlyPlayedSongsUseCase().collectLatest { recentlyPlayed ->
+                    _uiState.update { state ->
+                        state.copy(recentlyPlayed = recentlyPlayed.take(10))
+                    }
+                    recentlyPlayedLoaded = true
+                    checkAllDataLoaded()
+                }
+            }
         }
     }
     
     private fun checkAllDataLoaded() {
-        if (songsLoaded && albumsLoaded && artistsLoaded) {
+        if (songsLoaded && albumsLoaded && artistsLoaded && favoritesLoaded && mostPlayedLoaded && recentlyPlayedLoaded) {
             _uiState.update { it.copy(isLoading = false) }
         }
     }

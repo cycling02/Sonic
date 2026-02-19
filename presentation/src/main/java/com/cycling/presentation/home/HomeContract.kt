@@ -11,6 +11,7 @@ data class HomeUiState(
     val topAlbums: List<Album> = emptyList(),
     val topArtists: List<Artist> = emptyList(),
     val mostPlayed: List<Song> = emptyList(),
+    val favoriteSongs: List<Song> = emptyList(),
     val error: String? = null
 )
 
@@ -25,6 +26,10 @@ sealed interface HomeIntent {
     data object NavigateToPlaylists : HomeIntent
     data object NavigateToSettings : HomeIntent
     data object NavigateToScan : HomeIntent
+    data object NavigateToFavorites : HomeIntent
+    data object NavigateToRecentlyPlayed : HomeIntent
+    data object NavigateToMostPlayed : HomeIntent
+    data object NavigateToSearch : HomeIntent
 }
 
 sealed interface HomeEffect {
@@ -38,4 +43,8 @@ sealed interface HomeEffect {
     data object NavigateToPlaylists : HomeEffect
     data object NavigateToSettings : HomeEffect
     data object NavigateToScan : HomeEffect
+    data object NavigateToFavorites : HomeEffect
+    data object NavigateToRecentlyPlayed : HomeEffect
+    data object NavigateToMostPlayed : HomeEffect
+    data object NavigateToSearch : HomeEffect
 }

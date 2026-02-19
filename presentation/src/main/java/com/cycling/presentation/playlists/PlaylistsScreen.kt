@@ -16,9 +16,12 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.QueueMusic
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.QueueMusic
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -76,6 +79,22 @@ fun PlaylistsScreen(
         )
     }
 
+    if (uiState.showRenameDialog && uiState.playlistToRename != null) {
+        val playlistToRename = uiState.playlistToRename!!
+        RenamePlaylistDialog(
+            playlist = playlistToRename,
+            onDismiss = { viewModel.handleIntent(PlaylistsIntent.DismissRenameDialog) },
+            onRename = { newName ->
+                viewModel.handleIntent(
+                    PlaylistsIntent.RenamePlaylist(
+                        playlistToRename.id,
+                        newName
+                    )
+                )
+            }
+        )
+    }
+
     Scaffold(
         topBar = {
             IOSTopAppBar(
@@ -119,6 +138,7 @@ fun PlaylistsScreen(
                     PlaylistItem(
                         playlist = playlist,
                         onClick = { viewModel.handleIntent(PlaylistsIntent.PlaylistClick(playlist)) },
+                        onRename = { viewModel.handleIntent(PlaylistsIntent.ShowRenameDialog(playlist)) },
                         showDivider = playlist != uiState.playlists.last()
                     )
                 }
@@ -171,11 +191,58 @@ private fun CreatePlaylistDialog(
 }
 
 @Composable
+private fun RenamePlaylistDialog(
+    playlist: Playlist,
+    onDismiss: () -> Unit,
+    onRename: (String) -> Unit
+) {
+    var name by remember { mutableStateOf(playlist.name) }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("重命名播放列表") },
+        text = {
+            OutlinedTextField(
+                value = name,
+                onValueChange = { name = it },
+                placeholder = { Text("输入播放列表名称") },
+                singleLine = true,
+                keyboardOptions = KeyboardOptions(
+                    capitalization = KeyboardCapitalization.Sentences
+                ),
+                modifier = Modifier.fillMaxWidth()
+            )
+        },
+        confirmButton = {
+            TextButton(
+                onClick = {
+                    if (name.isNotBlank()) {
+                        onRename(name.trim())
+                    }
+                },
+                enabled = name.isNotBlank()
+            ) {
+                Text("确定")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("取消")
+            }
+        },
+        shape = RoundedCornerShape(16.dp)
+    )
+}
+
+@Composable
 private fun PlaylistItem(
     playlist: Playlist,
     onClick: () -> Unit,
+    onRename: () -> Unit,
     showDivider: Boolean
 ) {
+    var showMenu by remember { mutableStateOf(false) }
+
     IOSListItem(
         title = playlist.name,
         onClick = onClick,
@@ -194,11 +261,27 @@ private fun PlaylistItem(
             }
         },
         trailing = {
-            Text(
-                text = "${playlist.numberOfSongs} 首",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
+            Box {
+                IconButton(onClick = { showMenu = true }) {
+                    Icon(
+                        imageVector = Icons.Default.MoreVert,
+                        contentDescription = "更多选项",
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+                DropdownMenu(
+                    expanded = showMenu,
+                    onDismissRequest = { showMenu = false }
+                ) {
+                    DropdownMenuItem(
+                        text = { Text("重命名") },
+                        onClick = {
+                            showMenu = false
+                            onRename()
+                        }
+                    )
+                }
+            }
         }
     )
 }

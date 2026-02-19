@@ -10,6 +10,7 @@ import androidx.media3.exoplayer.ExoPlayer
 import com.cycling.domain.model.PlayerState
 import com.cycling.domain.model.RepeatMode
 import com.cycling.domain.model.Song
+import com.cycling.domain.repository.SongRepository
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -26,7 +27,8 @@ import javax.inject.Singleton
 @OptIn(UnstableApi::class)
 class PlayerManager @Inject constructor(
     private val exoPlayer: ExoPlayer,
-    @ApplicationContext private val context: Context
+    @ApplicationContext private val context: Context,
+    private val songRepository: SongRepository
 ) {
     private val _playerState = MutableStateFlow(PlayerState())
     val playerState: StateFlow<PlayerState> = _playerState.asStateFlow()
@@ -36,6 +38,8 @@ class PlayerManager @Inject constructor(
 
     private var playbackQueue: MutableList<Song> = mutableListOf()
     private var currentIndex: Int = -1
+    private var hasCountedPlay: Boolean = false
+    private var currentSongId: Long? = null
 
     init {
         setupPlayerListener()
@@ -56,13 +60,36 @@ class PlayerManager @Inject constructor(
 
             override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
                 updatePlaybackPosition()
+                resetPlayCountFlag()
             }
         })
 
         scope.launch {
             while (true) {
                 updatePlaybackPosition()
+                checkPlayProgress()
                 kotlinx.coroutines.delay(1000)
+            }
+        }
+    }
+
+    private fun resetPlayCountFlag() {
+        hasCountedPlay = false
+    }
+
+    private fun checkPlayProgress() {
+        val duration = exoPlayer.duration
+        val position = exoPlayer.currentPosition
+        
+        if (duration > 0 && position > 0 && !hasCountedPlay) {
+            val progress = position.toFloat() / duration.toFloat()
+            if (progress >= 0.5f) {
+                currentSongId?.let { songId ->
+                    scope.launch(Dispatchers.IO) {
+                        songRepository.incrementPlayCount(songId)
+                    }
+                    hasCountedPlay = true
+                }
             }
         }
     }
@@ -126,6 +153,13 @@ class PlayerManager @Inject constructor(
         exoPlayer.setMediaItem(mediaItem)
         exoPlayer.prepare()
         exoPlayer.playWhenReady = true
+
+        currentSongId = song.id
+        hasCountedPlay = false
+
+        scope.launch(Dispatchers.IO) {
+            songRepository.updateLastPlayedAt(song.id)
+        }
 
         _playerState.update {
             it.copy(
@@ -200,6 +234,13 @@ class PlayerManager @Inject constructor(
             exoPlayer.setMediaItem(mediaItem)
             exoPlayer.prepare()
             exoPlayer.playWhenReady = true
+
+            currentSongId = song.id
+            hasCountedPlay = false
+
+            scope.launch(Dispatchers.IO) {
+                songRepository.updateLastPlayedAt(song.id)
+            }
 
             _playerState.update {
                 it.copy(

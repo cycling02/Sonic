@@ -17,4 +17,16 @@ interface SongRepository {
     suspend fun refreshSongs()
 
     suspend fun getSongCount(): Int
+
+    fun getFavoriteSongs(): Flow<List<Song>>
+
+    fun getMostPlayedSongs(): Flow<List<Song>>
+
+    fun getRecentlyPlayedSongs(): Flow<List<Song>>
+
+    suspend fun toggleFavorite(songId: Long): Boolean
+
+    suspend fun incrementPlayCount(songId: Long)
+
+    suspend fun updateLastPlayedAt(songId: Long)
 }

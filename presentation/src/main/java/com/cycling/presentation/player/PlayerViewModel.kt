@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.cycling.domain.model.RepeatMode
 import com.cycling.domain.repository.PlayerRepository
+import com.cycling.domain.repository.SongRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -17,7 +18,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class PlayerViewModel @Inject constructor(
-    private val playerRepository: PlayerRepository
+    private val playerRepository: PlayerRepository,
+    private val songRepository: SongRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(PlayerUiState())
@@ -33,7 +35,11 @@ class PlayerViewModel @Inject constructor(
     private fun observePlayerState() {
         viewModelScope.launch {
             playerRepository.playerState.collect { state ->
-                _uiState.update { state.toUiState() }
+                _uiState.update { 
+                    state.toUiState().copy(
+                        isFavorite = state.currentSong?.isFavorite ?: false
+                    )
+                }
             }
         }
     }
@@ -52,6 +58,7 @@ class PlayerViewModel @Inject constructor(
             is PlayerIntent.ClearQueue -> clearQueue()
             is PlayerIntent.ToggleQueue -> toggleQueue()
             is PlayerIntent.UpdateProgress -> { }
+            is PlayerIntent.ToggleFavorite -> toggleFavorite()
         }
     }
 
@@ -107,5 +114,15 @@ class PlayerViewModel @Inject constructor(
 
     private fun toggleQueue() {
         _uiState.update { it.copy(showQueue = !it.showQueue) }
+    }
+
+    private fun toggleFavorite() {
+        val currentSong = _uiState.value.currentSong ?: return
+        viewModelScope.launch {
+            val newFavoriteStatus = songRepository.toggleFavorite(currentSong.id)
+            _uiState.update { it.copy(isFavorite = newFavoriteStatus) }
+            val message = if (newFavoriteStatus) "已添加到喜欢" else "已从喜欢移除"
+            _uiEffect.emit(PlayerEffect.ShowToast(message))
+        }
     }
 }

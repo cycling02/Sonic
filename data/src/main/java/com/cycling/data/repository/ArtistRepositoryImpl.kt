@@ -35,4 +35,15 @@ class ArtistRepositoryImpl @Inject constructor(
         }
         return cachedArtists.size
     }
+
+    override fun searchArtists(query: String): Flow<List<Artist>> = flow {
+        if (cachedArtists.isEmpty()) {
+            cachedArtists = mediaStoreHelper.queryAllArtists()
+        }
+        val lowerCaseQuery = query.lowercase()
+        val results = cachedArtists.filter { artist ->
+            artist.name.lowercase().contains(lowerCaseQuery)
+        }
+        emit(results)
+    }
 }

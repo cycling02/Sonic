@@ -13,5 +13,8 @@ data class Song(
     val dateModified: Long,
     val size: Long,
     val mimeType: String,
-    val albumArt: String? = null
+    val albumArt: String? = null,
+    val isFavorite: Boolean = false,
+    val playCount: Int = 0,
+    val lastPlayedAt: Long? = null
 )

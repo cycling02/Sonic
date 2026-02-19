@@ -11,4 +11,6 @@ interface AlbumRepository {
     fun getAlbumsByArtist(artistId: Long): Flow<List<Album>>
 
     suspend fun getAlbumCount(): Int
+
+    fun searchAlbums(query: String): Flow<List<Album>>
 }

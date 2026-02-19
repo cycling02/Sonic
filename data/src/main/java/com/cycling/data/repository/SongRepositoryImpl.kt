@@ -55,4 +55,37 @@ class SongRepositoryImpl @Inject constructor(
     override suspend fun getSongCount(): Int {
         return songDao.getSongCount()
     }
+
+    override fun getFavoriteSongs(): Flow<List<Song>> {
+        return songDao.getFavoriteSongs().map { entities ->
+            entities.map { it.toDomain() }
+        }
+    }
+
+    override fun getMostPlayedSongs(): Flow<List<Song>> {
+        return songDao.getMostPlayedSongs().map { entities ->
+            entities.map { it.toDomain() }
+        }
+    }
+
+    override fun getRecentlyPlayedSongs(): Flow<List<Song>> {
+        return songDao.getRecentlyPlayedSongs().map { entities ->
+            entities.map { it.toDomain() }
+        }
+    }
+
+    override suspend fun toggleFavorite(songId: Long): Boolean {
+        val song = songDao.getSongById(songId) ?: return false
+        val newFavoriteStatus = !song.isFavorite
+        songDao.updateFavorite(songId, newFavoriteStatus)
+        return newFavoriteStatus
+    }
+
+    override suspend fun incrementPlayCount(songId: Long) {
+        songDao.incrementPlayCount(songId, System.currentTimeMillis())
+    }
+
+    override suspend fun updateLastPlayedAt(songId: Long) {
+        songDao.updateLastPlayedAt(songId, System.currentTimeMillis())
+    }
 }

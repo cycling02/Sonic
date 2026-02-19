@@ -7,6 +7,7 @@ import androidx.media3.exoplayer.ExoPlayer
 import com.cycling.data.player.PlayerManager
 import com.cycling.data.repository.PlayerRepositoryImpl
 import com.cycling.domain.repository.PlayerRepository
+import com.cycling.domain.repository.SongRepository
 import dagger.Binds
 import dagger.Module
 import dagger.Provides
@@ -40,9 +41,10 @@ abstract class PlayerModule {
         @Singleton
         fun providePlayerManager(
             exoPlayer: ExoPlayer,
-            @ApplicationContext context: Context
+            @ApplicationContext context: Context,
+            songRepository: SongRepository
         ): PlayerManager {
-            return PlayerManager(exoPlayer, context)
+            return PlayerManager(exoPlayer, context, songRepository)
         }
     }
 }

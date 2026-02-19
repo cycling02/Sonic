@@ -80,6 +80,7 @@ fun IOSLargeTitleTopAppBar(
     title: String,
     isLarge: Boolean,
     modifier: Modifier = Modifier,
+    navigationIcon: @Composable (() -> Unit)? = null,
     actions: @Composable (() -> Unit)? = null
 ) {
     TopAppBar(
@@ -90,6 +91,9 @@ fun IOSLargeTitleTopAppBar(
                 else MaterialTheme.typography.headlineSmall,
                 color = MaterialTheme.colorScheme.onBackground
             )
+        },
+        navigationIcon = {
+            navigationIcon?.invoke()
         },
         actions = {
             actions?.invoke()

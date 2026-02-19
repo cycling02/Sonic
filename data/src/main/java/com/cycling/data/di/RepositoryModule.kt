@@ -7,6 +7,7 @@ import com.cycling.data.repository.ExcludedFolderRepositoryImpl
 import com.cycling.data.repository.MusicScannerRepositoryImpl
 import com.cycling.data.repository.PlaylistRepositoryImpl
 import com.cycling.data.repository.ScanProgressRepositoryImpl
+import com.cycling.data.repository.SearchHistoryRepositoryImpl
 import com.cycling.data.repository.SongRepositoryImpl
 import com.cycling.data.repository.SongsPreferencesRepositoryImpl
 import com.cycling.data.repository.ThemeRepositoryImpl
@@ -17,6 +18,7 @@ import com.cycling.domain.repository.ExcludedFolderRepository
 import com.cycling.domain.repository.MusicScannerRepository
 import com.cycling.domain.repository.PlaylistRepository
 import com.cycling.domain.repository.ScanProgressRepository
+import com.cycling.domain.repository.SearchHistoryRepository
 import com.cycling.domain.repository.SongRepository
 import com.cycling.domain.repository.SongsPreferencesRepository
 import com.cycling.domain.repository.ThemeRepository
@@ -89,4 +91,10 @@ abstract class RepositoryModule {
     abstract fun bindAiRepository(
         aiRepositoryImpl: AiRepositoryImpl
     ): AiRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindSearchHistoryRepository(
+        searchHistoryRepositoryImpl: SearchHistoryRepositoryImpl
+    ): SearchHistoryRepository
 }

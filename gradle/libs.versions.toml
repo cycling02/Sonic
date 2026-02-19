@@ -25,6 +25,7 @@ lifecycleRuntimeCompose = "2.8.7"
 kotlinxSerialization = "1.7.3"
 kotlinxCoroutines = "1.8.1"
 datastorePreferences = "1.1.1"
+composeMarkdown = "0.5.4"
 
 
 [libraries]
@@ -88,6 +89,9 @@ okhttp-logging = { group = "com.squareup.okhttp3", name = "logging-interceptor",
 
 #kotlinx-serialization-json
 kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "kotlinxSerialization" }
+
+#compose-markdown
+compose-markdown = { group = "com.github.jeziellago", name = "compose-markdown", version.ref = "composeMarkdown" }
 
 
 [plugins]

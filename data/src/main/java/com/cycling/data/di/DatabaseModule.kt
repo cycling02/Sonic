@@ -4,7 +4,9 @@ import android.content.Context
 import androidx.room.Room
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
+import com.cycling.data.local.dao.AiInfoCacheDao
 import com.cycling.data.local.dao.PlaylistDao
+import com.cycling.data.local.dao.SearchHistoryDao
 import com.cycling.data.local.dao.SongDao
 import com.cycling.data.local.database.AppDatabase
 import dagger.Module
@@ -23,6 +25,37 @@ object DatabaseModule {
         }
     }
 
+    private val MIGRATION_3_4 = object : Migration(3, 4) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL("""
+                CREATE TABLE IF NOT EXISTS ai_info_cache (
+                    cacheKey TEXT NOT NULL PRIMARY KEY,
+                    type TEXT NOT NULL,
+                    title TEXT NOT NULL,
+                    content TEXT NOT NULL,
+                    createdAt INTEGER NOT NULL
+                )
+            """.trimIndent())
+        }
+    }
+
+    private val MIGRATION_4_5 = object : Migration(4, 5) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+        }
+    }
+
+    private val MIGRATION_5_6 = object : Migration(5, 6) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL("""
+                CREATE TABLE IF NOT EXISTS search_history (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                    query TEXT NOT NULL,
+                    timestamp INTEGER NOT NULL
+                )
+            """.trimIndent())
+        }
+    }
+
     @Provides
     @Singleton
     fun provideAppDatabase(
@@ -33,7 +66,7 @@ object DatabaseModule {
             AppDatabase::class.java,
             "sonic_database"
         )
-            .addMigrations(MIGRATION_2_3)
+            .addMigrations(MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6)
             .build()
     }
 
@@ -45,5 +78,15 @@ object DatabaseModule {
     @Provides
     fun providePlaylistDao(database: AppDatabase): PlaylistDao {
         return database.playlistDao()
+    }
+
+    @Provides
+    fun provideAiInfoCacheDao(database: AppDatabase): AiInfoCacheDao {
+        return database.aiInfoCacheDao()
+    }
+
+    @Provides
+    fun provideSearchHistoryDao(database: AppDatabase): SearchHistoryDao {
+        return database.searchHistoryDao()
     }
 }
