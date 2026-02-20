@@ -47,6 +47,7 @@ class PlayerViewModel @Inject constructor(
     fun handleIntent(intent: PlayerIntent) {
         when (intent) {
             is PlayerIntent.PlaySong -> playSong(intent.song, intent.queue)
+            is PlayerIntent.PlayFromQueue -> playFromQueue(intent.index)
             is PlayerIntent.PlayPause -> playPause()
             is PlayerIntent.SeekTo -> seekTo(intent.position)
             is PlayerIntent.SkipToNext -> skipToNext()
@@ -64,6 +65,13 @@ class PlayerViewModel @Inject constructor(
 
     private fun playSong(song: com.cycling.domain.model.Song, queue: List<com.cycling.domain.model.Song>) {
         playerRepository.playSong(song, queue)
+    }
+
+    private fun playFromQueue(index: Int) {
+        val queue = _uiState.value.playbackQueue
+        if (index in queue.indices) {
+            playerRepository.playSong(queue[index], queue)
+        }
     }
 
     private fun playPause() {

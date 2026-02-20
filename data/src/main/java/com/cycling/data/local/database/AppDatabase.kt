@@ -20,7 +20,7 @@ import com.cycling.data.local.entity.SongEntity
         AiInfoCacheEntity::class,
         SearchHistoryEntity::class
     ],
-    version = 6,
+    version = 1,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {

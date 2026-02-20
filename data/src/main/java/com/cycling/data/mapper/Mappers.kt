@@ -24,7 +24,8 @@ fun SongEntity.toDomain(): Song {
         albumArt = albumArt,
         isFavorite = isFavorite,
         playCount = playCount,
-        lastPlayedAt = lastPlayedAt
+        lastPlayedAt = lastPlayedAt,
+        bitrate = bitrate
     )
 }
 
@@ -45,7 +46,8 @@ fun Song.toEntity(): SongEntity {
         albumArt = albumArt,
         isFavorite = isFavorite,
         playCount = playCount,
-        lastPlayedAt = lastPlayedAt
+        lastPlayedAt = lastPlayedAt,
+        bitrate = bitrate
     )
 }
 

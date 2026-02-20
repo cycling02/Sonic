@@ -40,11 +40,10 @@ abstract class PlayerModule {
         @Provides
         @Singleton
         fun providePlayerManager(
-            exoPlayer: ExoPlayer,
             @ApplicationContext context: Context,
             songRepository: SongRepository
         ): PlayerManager {
-            return PlayerManager(exoPlayer, context, songRepository)
+            return PlayerManager(context, songRepository)
         }
     }
 }

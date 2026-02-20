@@ -2,6 +2,7 @@ package com.cycling.presentation.home
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.cycling.domain.repository.PlayerRepository
 import com.cycling.domain.usecase.GetAllAlbumsUseCase
 import com.cycling.domain.usecase.GetAllArtistsUseCase
 import com.cycling.domain.usecase.GetAllSongsUseCase
@@ -27,11 +28,14 @@ class HomeViewModel @Inject constructor(
     private val getAllArtistsUseCase: GetAllArtistsUseCase,
     private val getFavoriteSongsUseCase: GetFavoriteSongsUseCase,
     private val getMostPlayedSongsUseCase: GetMostPlayedSongsUseCase,
-    private val getRecentlyPlayedSongsUseCase: GetRecentlyPlayedSongsUseCase
+    private val getRecentlyPlayedSongsUseCase: GetRecentlyPlayedSongsUseCase,
+    private val playerRepository: PlayerRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(HomeUiState())
     val uiState: StateFlow<HomeUiState> = _uiState.asStateFlow()
+    
+    val playerState = playerRepository.playerState
 
     private val _uiEffect = MutableSharedFlow<HomeEffect>()
     val uiEffect: SharedFlow<HomeEffect> = _uiEffect.asSharedFlow()
@@ -63,6 +67,16 @@ class HomeViewModel @Inject constructor(
             is HomeIntent.NavigateToRecentlyPlayed -> navigateTo(HomeEffect.NavigateToRecentlyPlayed)
             is HomeIntent.NavigateToMostPlayed -> navigateTo(HomeEffect.NavigateToMostPlayed)
             is HomeIntent.NavigateToSearch -> navigateTo(HomeEffect.NavigateToSearch)
+            is HomeIntent.PlayPause -> playerRepository.playPause()
+            is HomeIntent.MiniPlayerClick -> handleMiniPlayerClick()
+        }
+    }
+    
+    private fun handleMiniPlayerClick() {
+        viewModelScope.launch {
+            playerRepository.getCurrentState().currentSong?.let { song ->
+                _uiEffect.emit(HomeEffect.NavigateToPlayer(song.id))
+            }
         }
     }
 

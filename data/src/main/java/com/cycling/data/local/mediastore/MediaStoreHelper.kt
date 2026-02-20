@@ -3,12 +3,14 @@ package com.cycling.data.local.mediastore
 import android.content.ContentUris
 import android.content.Context
 import android.database.Cursor
+import android.media.MediaMetadataRetriever
 import android.net.Uri
 import android.provider.MediaStore
 import com.cycling.domain.model.Album
 import com.cycling.domain.model.Artist
 import com.cycling.domain.model.Song
 import dagger.hilt.android.qualifiers.ApplicationContext
+import java.io.File
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -257,6 +259,7 @@ class MediaStoreHelper @Inject constructor(
             MediaStore.Audio.Albums.EXTERNAL_CONTENT_URI,
             albumId
         ).toString()
+        val path = getString(getColumnIndexOrThrow(MediaStore.Audio.Media.DATA)) ?: ""
         
         return Song(
             id = getLong(getColumnIndexOrThrow(MediaStore.Audio.Media._ID)),
@@ -264,15 +267,28 @@ class MediaStoreHelper @Inject constructor(
             artist = getString(getColumnIndexOrThrow(MediaStore.Audio.Media.ARTIST)) ?: UNKNOWN,
             album = getString(getColumnIndexOrThrow(MediaStore.Audio.Media.ALBUM)) ?: UNKNOWN,
             duration = getLong(getColumnIndexOrThrow(MediaStore.Audio.Media.DURATION)),
-            path = getString(getColumnIndexOrThrow(MediaStore.Audio.Media.DATA)) ?: "",
+            path = path,
             albumId = albumId,
             artistId = getLong(getColumnIndexOrThrow(MediaStore.Audio.Media.ARTIST_ID)),
             dateAdded = getLong(getColumnIndexOrThrow(MediaStore.Audio.Media.DATE_ADDED)),
             dateModified = getLong(getColumnIndexOrThrow(MediaStore.Audio.Media.DATE_MODIFIED)),
             size = getLong(getColumnIndexOrThrow(MediaStore.Audio.Media.SIZE)),
             mimeType = getString(getColumnIndexOrThrow(MediaStore.Audio.Media.MIME_TYPE)) ?: "",
-            albumArt = albumArtUri
+            albumArt = albumArtUri,
+            bitrate = 0
         )
+    }
+
+    fun extractBitrate(path: String): Int {
+        return try {
+            val retriever = MediaMetadataRetriever()
+            retriever.setDataSource(path)
+            val bitrate = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_BITRATE)
+            retriever.release()
+            bitrate?.toIntOrNull()?.div(1000) ?: 0
+        } catch (e: Exception) {
+            0
+        }
     }
 
     private fun Cursor.toAlbum(): Album {

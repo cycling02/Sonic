@@ -4,6 +4,7 @@ import com.cycling.data.local.dao.SongDao
 import com.cycling.data.local.mediastore.MediaStoreHelper
 import com.cycling.data.mapper.toDomain
 import com.cycling.data.mapper.toEntity
+import com.cycling.domain.model.LibraryStats
 import com.cycling.domain.model.Song
 import com.cycling.domain.repository.SongRepository
 import kotlinx.coroutines.flow.Flow
@@ -87,5 +88,29 @@ class SongRepositoryImpl @Inject constructor(
 
     override suspend fun updateLastPlayedAt(songId: Long) {
         songDao.updateLastPlayedAt(songId, System.currentTimeMillis())
+    }
+
+    override suspend fun getLibraryStats(): LibraryStats {
+        val songsWithoutBitrate = songDao.getSongsWithoutBitrate()
+        if (songsWithoutBitrate.isNotEmpty()) {
+            songsWithoutBitrate.forEach { song ->
+                val bitrate = mediaStoreHelper.extractBitrate(song.path)
+                songDao.updateBitrate(song.id, bitrate)
+            }
+        }
+        
+        val totalSongs = songDao.getSongCount()
+        val hrCount = songDao.getHrCount()
+        val sqCount = songDao.getSqCount()
+        val hqCount = songDao.getHqCount()
+        val othersCount = songDao.getOthersCount()
+        
+        return LibraryStats(
+            totalSongs = totalSongs,
+            hrCount = hrCount,
+            sqCount = sqCount,
+            hqCount = hqCount,
+            othersCount = othersCount
+        )
     }
 }

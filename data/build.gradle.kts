@@ -50,6 +50,7 @@ dependencies {
     ksp(libs.androidx.hilt.compiler)
     
     implementation(libs.kotlinx.coroutines.core)
+    implementation(libs.kotlinx.coroutines.guava)
     implementation(libs.androidx.datastore.preferences)
 
     implementation(libs.androidx.media3.exoplayer)
@@ -58,6 +59,8 @@ dependencies {
     implementation(libs.okhttp)
     implementation(libs.okhttp.logging)
     implementation(libs.kotlinx.serialization.json)
+
+    implementation(libs.mp3agic)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

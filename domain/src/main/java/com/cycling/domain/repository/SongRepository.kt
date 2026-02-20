@@ -1,5 +1,6 @@
 package com.cycling.domain.repository
 
+import com.cycling.domain.model.LibraryStats
 import com.cycling.domain.model.Song
 import kotlinx.coroutines.flow.Flow
 
@@ -29,4 +30,6 @@ interface SongRepository {
     suspend fun incrementPlayCount(songId: Long)
 
     suspend fun updateLastPlayedAt(songId: Long)
+
+    suspend fun getLibraryStats(): LibraryStats
 }

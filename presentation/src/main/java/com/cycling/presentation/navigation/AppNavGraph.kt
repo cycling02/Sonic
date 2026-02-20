@@ -19,6 +19,8 @@ import com.cycling.presentation.artists.ArtistsScreen
 import com.cycling.presentation.excludefolders.ExcludeFoldersScreen
 import com.cycling.presentation.favorites.FavoritesScreen
 import com.cycling.presentation.home.HomeScreen
+import com.cycling.presentation.librarystats.LibraryStatsScreen
+import com.cycling.presentation.lyrics.LyricsScreen
 import com.cycling.presentation.mostplayed.MostPlayedScreen
 import com.cycling.presentation.player.PlayerScreen
 import com.cycling.presentation.player.PlayerViewModel
@@ -51,7 +53,7 @@ fun AppNavGraph(
                 onNavigateToScan = { navController.navigate(Screen.Scan) },
                 onNavigateToAlbumDetail = { albumId -> navController.navigate(Screen.AlbumDetail(albumId)) },
                 onNavigateToArtistDetail = { artistId -> navController.navigate(Screen.ArtistDetail(artistId)) },
-                onNavigateToPlayer = { songId -> },
+                onNavigateToPlayer = { songId -> navController.navigate(Screen.Player) },
                 onNavigateToFavorites = { navController.navigate(Screen.Favorites) },
                 onNavigateToRecentlyPlayed = { navController.navigate(Screen.RecentlyPlayed) },
                 onNavigateToMostPlayed = { navController.navigate(Screen.MostPlayed) },
@@ -116,7 +118,8 @@ fun AppNavGraph(
                 onNavigateBack = { navController.popBackStack() },
                 onNavigateToScan = { navController.navigate(Screen.Scan) },
                 onNavigateToExcludeFolders = { navController.navigate(Screen.ExcludeFolders) },
-                onNavigateToApiKeyConfig = { navController.navigate(Screen.ApiKeyConfig) }
+                onNavigateToApiKeyConfig = { navController.navigate(Screen.ApiKeyConfig) },
+                onNavigateToLibraryStats = { navController.navigate(Screen.LibraryStats) }
             )
         }
 
@@ -139,7 +142,8 @@ fun AppNavGraph(
             PlayerScreen(
                 uiState = uiState,
                 onIntent = playerViewModel::handleIntent,
-                onNavigateBack = { navController.popBackStack() }
+                onNavigateBack = { navController.popBackStack() },
+                onNavigateToLyrics = { navController.navigate(Screen.Lyrics) }
             )
         }
 
@@ -177,6 +181,18 @@ fun AppNavGraph(
                 onNavigateToAlbumDetail = { albumId -> navController.navigate(Screen.AlbumDetail(albumId)) },
                 onNavigateToArtistDetail = { artistId -> navController.navigate(Screen.ArtistDetail(artistId)) },
                 playerViewModel = playerViewModel
+            )
+        }
+
+        composable<Screen.LibraryStats> {
+            LibraryStatsScreen(
+                onNavigateBack = { navController.popBackStack() }
+            )
+        }
+
+        composable<Screen.Lyrics> {
+            LyricsScreen(
+                onNavigateBack = { navController.popBackStack() }
             )
         }
     }

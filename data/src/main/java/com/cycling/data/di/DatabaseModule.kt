@@ -20,41 +20,8 @@ import javax.inject.Singleton
 @InstallIn(SingletonComponent::class)
 object DatabaseModule {
 
-    private val MIGRATION_2_3 = object : Migration(2, 3) {
-        override fun migrate(db: SupportSQLiteDatabase) {
-        }
-    }
 
-    private val MIGRATION_3_4 = object : Migration(3, 4) {
-        override fun migrate(db: SupportSQLiteDatabase) {
-            db.execSQL("""
-                CREATE TABLE IF NOT EXISTS ai_info_cache (
-                    cacheKey TEXT NOT NULL PRIMARY KEY,
-                    type TEXT NOT NULL,
-                    title TEXT NOT NULL,
-                    content TEXT NOT NULL,
-                    createdAt INTEGER NOT NULL
-                )
-            """.trimIndent())
-        }
-    }
 
-    private val MIGRATION_4_5 = object : Migration(4, 5) {
-        override fun migrate(db: SupportSQLiteDatabase) {
-        }
-    }
-
-    private val MIGRATION_5_6 = object : Migration(5, 6) {
-        override fun migrate(db: SupportSQLiteDatabase) {
-            db.execSQL("""
-                CREATE TABLE IF NOT EXISTS search_history (
-                    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
-                    query TEXT NOT NULL,
-                    timestamp INTEGER NOT NULL
-                )
-            """.trimIndent())
-        }
-    }
 
     @Provides
     @Singleton
@@ -66,7 +33,7 @@ object DatabaseModule {
             AppDatabase::class.java,
             "sonic_database"
         )
-            .addMigrations(MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6)
+            .fallbackToDestructiveMigration()
             .build()
     }
 

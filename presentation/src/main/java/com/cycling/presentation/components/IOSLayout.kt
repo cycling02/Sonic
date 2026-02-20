@@ -1,17 +1,28 @@
 package com.cycling.presentation.components
 
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.Orientation
+import androidx.compose.foundation.gestures.draggable
+import androidx.compose.foundation.gestures.rememberDraggableState
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsDraggedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -27,16 +38,27 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.cycling.presentation.theme.SonicColors
 import com.cycling.presentation.theme.SonicTheme
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -225,6 +247,106 @@ fun IOSCardContainer(
             .padding(20.dp)
     ) {
         content()
+    }
+}
+
+@Composable
+fun IOSScrollbar(
+    lazyListState: LazyListState,
+    modifier: Modifier = Modifier,
+    thumbColor: Color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
+    thumbWidth: androidx.compose.ui.unit.Dp = 4.dp
+) {
+    val totalItemsCount = lazyListState.layoutInfo.totalItemsCount
+    val coroutineScope = rememberCoroutineScope()
+    val density = LocalDensity.current
+    
+    var isDragging by remember { mutableStateOf(false) }
+    var isVisible by remember { mutableStateOf(false) }
+    
+    val isListDragged by lazyListState.interactionSource.collectIsDraggedAsState()
+    
+    val showScrollbar by remember {
+        derivedStateOf {
+            isDragging || isListDragged || isVisible
+        }
+    }
+    
+    val alpha by animateFloatAsState(
+        targetValue = if (showScrollbar && totalItemsCount > 0) 1f else 0f,
+        animationSpec = tween(durationMillis = 200),
+        label = "scrollbar_alpha"
+    )
+    
+    LaunchedEffect(isListDragged, isDragging) {
+        if (isListDragged || isDragging) {
+            isVisible = true
+        }
+        if (!isListDragged && !isDragging) {
+            delay(1000)
+            isVisible = false
+        }
+    }
+    
+    val firstVisibleItemIndex by remember {
+        derivedStateOf { lazyListState.firstVisibleItemIndex }
+    }
+    
+    val scrollProgress by remember(totalItemsCount, firstVisibleItemIndex) {
+        derivedStateOf {
+            if (totalItemsCount == 0) 0f
+            else firstVisibleItemIndex.toFloat() / totalItemsCount.coerceAtLeast(1)
+        }
+    }
+    
+    val viewportHeight = lazyListState.layoutInfo.viewportEndOffset - lazyListState.layoutInfo.viewportStartOffset
+    
+    val thumbHeightPx = remember(viewportHeight) {
+        (viewportHeight.toFloat() * 0.15f).coerceIn(48f, 80f)
+    }
+    
+    val thumbHeightDp = with(density) { thumbHeightPx.toDp() }
+    
+    val maxThumbOffset = (viewportHeight - thumbHeightPx).coerceAtLeast(0f)
+    val thumbOffsetPx = (scrollProgress * maxThumbOffset).coerceIn(0f, maxThumbOffset)
+    val thumbOffsetDp = with(density) { thumbOffsetPx.toDp() }
+    
+    val draggableState = rememberDraggableState { delta ->
+        if (totalItemsCount > 0 && viewportHeight > 0) {
+            val scrollRatio = totalItemsCount.toFloat() / viewportHeight
+            val scrollAmount = (delta * scrollRatio).toInt()
+            coroutineScope.launch {
+                lazyListState.scrollToItem(
+                    index = (firstVisibleItemIndex + scrollAmount).coerceIn(0, totalItemsCount - 1)
+                )
+            }
+        }
+    }
+    
+    if (alpha > 0 && viewportHeight > 0) {
+        Box(
+            modifier = modifier
+                .fillMaxHeight()
+                .width(thumbWidth + 8.dp)
+                .padding(horizontal = 2.dp),
+            contentAlignment = Alignment.TopEnd
+        ) {
+            Box(
+                modifier = Modifier
+                    .alpha(alpha)
+                    .width(thumbWidth)
+                    .height(thumbHeightDp)
+                    .offset(y = thumbOffsetDp)
+                    .clip(RoundedCornerShape(thumbWidth / 2))
+                    .background(thumbColor)
+                    .draggable(
+                        orientation = Orientation.Vertical,
+                        state = draggableState,
+                        onDragStarted = { isDragging = true },
+                        onDragStopped = { isDragging = false }
+                    )
+            )
+        }
     }
 }
 

@@ -30,6 +30,8 @@ sealed interface HomeIntent {
     data object NavigateToRecentlyPlayed : HomeIntent
     data object NavigateToMostPlayed : HomeIntent
     data object NavigateToSearch : HomeIntent
+    data object PlayPause : HomeIntent
+    data object MiniPlayerClick : HomeIntent
 }
 
 sealed interface HomeEffect {

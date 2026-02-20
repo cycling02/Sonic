@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.BarChart
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Folder
 import androidx.compose.material.icons.filled.Key
@@ -35,6 +36,7 @@ fun SettingsScreen(
     onNavigateToScan: () -> Unit,
     onNavigateToExcludeFolders: () -> Unit,
     onNavigateToApiKeyConfig: () -> Unit = {},
+    onNavigateToLibraryStats: () -> Unit = {},
     viewModel: SettingsViewModel = hiltViewModel(),
     bottomPadding: Dp = 0.dp
 ) {
@@ -70,6 +72,13 @@ fun SettingsScreen(
                     icon = Icons.Default.Folder,
                     iconBackgroundColor = SonicColors.Orange,
                     onClick = onNavigateToExcludeFolders,
+                    showDivider = true
+                )
+                IOSListItem(
+                    title = "音乐库统计",
+                    icon = Icons.Default.BarChart,
+                    iconBackgroundColor = SonicColors.Green,
+                    onClick = onNavigateToLibraryStats,
                     showDivider = false
                 )
             }

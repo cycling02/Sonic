@@ -19,6 +19,7 @@ data class PlayerUiState(
 
 sealed interface PlayerIntent {
     data class PlaySong(val song: Song, val queue: List<Song> = emptyList()) : PlayerIntent
+    data class PlayFromQueue(val index: Int) : PlayerIntent
     data object PlayPause : PlayerIntent
     data class SeekTo(val position: Long) : PlayerIntent
     data object SkipToNext : PlayerIntent

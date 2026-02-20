@@ -53,4 +53,10 @@ sealed interface Screen {
 
     @Serializable
     data object Search : Screen
+
+    @Serializable
+    data object LibraryStats : Screen
+
+    @Serializable
+    data object Lyrics : Screen
 }

@@ -1,16 +1,19 @@
 package com.cycling.data.player
 
 import android.content.Context
+import android.net.Uri
 import androidx.annotation.OptIn
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
-import androidx.media3.exoplayer.ExoPlayer
+import androidx.media3.session.MediaController
+import androidx.media3.session.SessionToken
 import com.cycling.domain.model.PlayerState
 import com.cycling.domain.model.RepeatMode
 import com.cycling.domain.model.Song
 import com.cycling.domain.repository.SongRepository
+import com.google.common.util.concurrent.ListenableFuture
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -19,6 +22,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.guava.await
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -26,7 +30,6 @@ import javax.inject.Singleton
 @Singleton
 @OptIn(UnstableApi::class)
 class PlayerManager @Inject constructor(
-    private val exoPlayer: ExoPlayer,
     @ApplicationContext private val context: Context,
     private val songRepository: SongRepository
 ) {
@@ -41,29 +44,46 @@ class PlayerManager @Inject constructor(
     private var hasCountedPlay: Boolean = false
     private var currentSongId: Long? = null
 
-    init {
-        setupPlayerListener()
+    private var mediaController: MediaController? = null
+    private var controllerFuture: ListenableFuture<MediaController>? = null
+
+    private val playerListener = object : Player.Listener {
+        override fun onIsPlayingChanged(isPlaying: Boolean) {
+            _playerState.update { it.copy(isPlaying = isPlaying) }
+        }
+
+        override fun onPlaybackStateChanged(playbackState: Int) {
+            if (playbackState == Player.STATE_ENDED) {
+                onSongEnded()
+            }
+            updatePlaybackPosition()
+        }
+
+        override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
+            updatePlaybackPosition()
+            resetPlayCountFlag()
+        }
     }
 
-    private fun setupPlayerListener() {
-        exoPlayer.addListener(object : Player.Listener {
-            override fun onIsPlayingChanged(isPlaying: Boolean) {
-                _playerState.update { it.copy(isPlaying = isPlaying) }
-            }
+    suspend fun connect(): Boolean {
+        return try {
+            if (mediaController != null) return true
 
-            override fun onPlaybackStateChanged(playbackState: Int) {
-                if (playbackState == Player.STATE_ENDED) {
-                    onSongEnded()
-                }
-                updatePlaybackPosition()
-            }
+            PlayerService.start(context)
 
-            override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
-                updatePlaybackPosition()
-                resetPlayCountFlag()
-            }
-        })
+            val sessionToken = SessionToken(context, android.content.ComponentName(context, PlayerService::class.java))
+            controllerFuture = MediaController.Builder(context, sessionToken).buildAsync()
+            mediaController = controllerFuture?.await()
+            mediaController?.addListener(playerListener)
 
+            startProgressUpdateLoop()
+            true
+        } catch (e: Exception) {
+            false
+        }
+    }
+
+    private fun startProgressUpdateLoop() {
         scope.launch {
             while (true) {
                 updatePlaybackPosition()
@@ -78,9 +98,10 @@ class PlayerManager @Inject constructor(
     }
 
     private fun checkPlayProgress() {
-        val duration = exoPlayer.duration
-        val position = exoPlayer.currentPosition
-        
+        val player = mediaController ?: return
+        val duration = player.duration
+        val position = player.currentPosition
+
         if (duration > 0 && position > 0 && !hasCountedPlay) {
             val progress = position.toFloat() / duration.toFloat()
             if (progress >= 0.5f) {
@@ -95,10 +116,11 @@ class PlayerManager @Inject constructor(
     }
 
     private fun updatePlaybackPosition() {
+        val player = mediaController ?: return
         _playerState.update {
             it.copy(
-                playbackPosition = exoPlayer.currentPosition,
-                duration = exoPlayer.duration.takeIf { d -> d > 0 } ?: 0
+                playbackPosition = player.currentPosition,
+                duration = player.duration.takeIf { d -> d > 0 } ?: 0
             )
         }
     }
@@ -106,8 +128,8 @@ class PlayerManager @Inject constructor(
     private fun onSongEnded() {
         when (_playerState.value.repeatMode) {
             RepeatMode.ONE -> {
-                exoPlayer.seekTo(0)
-                exoPlayer.play()
+                mediaController?.seekTo(0)
+                mediaController?.play()
             }
             RepeatMode.ALL -> {
                 skipToNextInternal(wrapAround = true)
@@ -127,7 +149,7 @@ class PlayerManager @Inject constructor(
             .setAlbumTitle(song.album)
 
         song.albumArt?.let { artworkUri ->
-            metadataBuilder.setArtworkUri(android.net.Uri.parse(artworkUri))
+            metadataBuilder.setArtworkUri(Uri.parse(artworkUri))
         }
 
         return MediaItem.Builder()
@@ -137,6 +159,8 @@ class PlayerManager @Inject constructor(
     }
 
     fun playSong(song: Song, queue: List<Song> = emptyList()) {
+        val player = mediaController ?: return
+
         if (queue.isNotEmpty()) {
             playbackQueue = queue.toMutableList()
             currentIndex = queue.indexOf(song)
@@ -147,12 +171,10 @@ class PlayerManager @Inject constructor(
             currentIndex = playbackQueue.indexOf(song)
         }
 
-        PlayerService.start(context)
-
         val mediaItem = createMediaItem(song)
-        exoPlayer.setMediaItem(mediaItem)
-        exoPlayer.prepare()
-        exoPlayer.playWhenReady = true
+        player.setMediaItem(mediaItem)
+        player.prepare()
+        player.playWhenReady = true
 
         currentSongId = song.id
         hasCountedPlay = false
@@ -172,15 +194,17 @@ class PlayerManager @Inject constructor(
     }
 
     fun playPause() {
-        if (exoPlayer.isPlaying) {
-            exoPlayer.pause()
+        val player = mediaController ?: return
+        if (player.isPlaying) {
+            player.pause()
         } else {
-            exoPlayer.play()
+            player.play()
         }
     }
 
     fun seekTo(position: Long) {
-        exoPlayer.seekTo(position)
+        val player = mediaController ?: return
+        player.seekTo(position)
         _playerState.update { it.copy(playbackPosition = position) }
     }
 
@@ -205,10 +229,11 @@ class PlayerManager @Inject constructor(
     }
 
     fun skipToPrevious() {
+        val player = mediaController ?: return
         if (playbackQueue.isEmpty()) return
 
-        if (exoPlayer.currentPosition > 3000) {
-            exoPlayer.seekTo(0)
+        if (player.currentPosition > 3000) {
+            player.seekTo(0)
             return
         }
 
@@ -226,29 +251,30 @@ class PlayerManager @Inject constructor(
     }
 
     private fun playSongAtIndex(index: Int) {
-        if (index in playbackQueue.indices) {
-            currentIndex = index
-            val song = playbackQueue[index]
+        val player = mediaController ?: return
+        if (index !in playbackQueue.indices) return
 
-            val mediaItem = createMediaItem(song)
-            exoPlayer.setMediaItem(mediaItem)
-            exoPlayer.prepare()
-            exoPlayer.playWhenReady = true
+        currentIndex = index
+        val song = playbackQueue[index]
 
-            currentSongId = song.id
-            hasCountedPlay = false
+        val mediaItem = createMediaItem(song)
+        player.setMediaItem(mediaItem)
+        player.prepare()
+        player.playWhenReady = true
 
-            scope.launch(Dispatchers.IO) {
-                songRepository.updateLastPlayedAt(song.id)
-            }
+        currentSongId = song.id
+        hasCountedPlay = false
 
-            _playerState.update {
-                it.copy(
-                    currentSong = song,
-                    queueIndex = index,
-                    isPlaying = true
-                )
-            }
+        scope.launch(Dispatchers.IO) {
+            songRepository.updateLastPlayedAt(song.id)
+        }
+
+        _playerState.update {
+            it.copy(
+                currentSong = song,
+                queueIndex = index,
+                isPlaying = true
+            )
         }
     }
 
@@ -266,32 +292,42 @@ class PlayerManager @Inject constructor(
     }
 
     fun removeFromQueue(index: Int) {
-        if (index in playbackQueue.indices) {
-            playbackQueue.removeAt(index)
-            if (currentIndex > index) {
-                currentIndex--
-            } else if (currentIndex == index) {
-                if (playbackQueue.isNotEmpty()) {
-                    playSongAtIndex(minOf(currentIndex, playbackQueue.size - 1))
-                } else {
-                    exoPlayer.stop()
-                    _playerState.update { PlayerState() }
-                }
+        if (index !in playbackQueue.indices) return
+
+        val player = mediaController ?: return
+        playbackQueue.removeAt(index)
+        if (currentIndex > index) {
+            currentIndex--
+        } else if (currentIndex == index) {
+            if (playbackQueue.isNotEmpty()) {
+                playSongAtIndex(minOf(currentIndex, playbackQueue.size - 1))
+            } else {
+                player.stop()
+                _playerState.update { PlayerState() }
             }
-            _playerState.update { it.copy(playbackQueue = playbackQueue.toList()) }
         }
+        _playerState.update { it.copy(playbackQueue = playbackQueue.toList()) }
     }
 
     fun clearQueue() {
+        val player = mediaController ?: return
         playbackQueue.clear()
         currentIndex = -1
-        exoPlayer.stop()
+        player.stop()
         _playerState.update { PlayerState() }
     }
 
     fun getCurrentState(): PlayerState = _playerState.value
 
     fun release() {
+        mediaController?.removeListener(playerListener)
+        controllerFuture?.let {
+            if (!it.isDone) {
+                it.cancel(true)
+            }
+        }
+        mediaController?.release()
+        mediaController = null
         supervisorJob.cancel()
     }
 }

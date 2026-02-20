@@ -1,6 +1,7 @@
 package com.cycling.presentation.albums
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -8,6 +9,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Album
@@ -30,6 +32,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil3.compose.AsyncImage
 import com.cycling.domain.model.Album
+import com.cycling.presentation.components.IOSScrollbar
 import com.cycling.presentation.components.IOSListItem
 import com.cycling.presentation.components.IOSTopAppBar
 import com.cycling.presentation.theme.SonicColors
@@ -62,7 +65,7 @@ fun AlbumsScreen(
         containerColor = MaterialTheme.colorScheme.background
     ) { paddingValues ->
         if (uiState.isLoading) {
-            androidx.compose.foundation.layout.Box(
+            Box(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(paddingValues),
@@ -73,18 +76,32 @@ fun AlbumsScreen(
                 )
             }
         } else {
-            LazyColumn(
+            val listState = rememberLazyListState()
+            
+            Box(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(paddingValues)
             ) {
-                items(uiState.albums, key = { it.id }) { album ->
-                    AlbumItem(
-                        album = album,
-                        onClick = { viewModel.handleIntent(AlbumsIntent.AlbumClick(album)) },
-                        showDivider = album != uiState.albums.last()
-                    )
+                LazyColumn(
+                    modifier = Modifier.fillMaxSize(),
+                    state = listState
+                ) {
+                    items(uiState.albums, key = { it.id }) { album ->
+                        AlbumItem(
+                            album = album,
+                            onClick = { viewModel.handleIntent(AlbumsIntent.AlbumClick(album)) },
+                            showDivider = album != uiState.albums.last()
+                        )
+                    }
                 }
+                
+                IOSScrollbar(
+                    lazyListState = listState,
+                    modifier = Modifier
+                        .align(Alignment.CenterEnd)
+                        .padding(end = 2.dp)
+                )
             }
         }
     }
