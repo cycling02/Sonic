@@ -1,4 +1,11 @@
 version: 2
+registries:
+  gradle-plugin-portal:
+    type: maven-repository
+    url: https://plugins.gradle.org/m2/
+    username: dummy
+    password: dummy
+
 updates:
   - package-ecosystem: "gradle"
     directory: "/"
@@ -10,31 +17,11 @@ updates:
     open-pull-requests-limit: 10
     commit-message:
       prefix: "deps"
-      include: "scope"
     labels:
       - "dependencies"
-    reviewers:
-      - "yun"
-    groups:
-      androidx:
-        patterns:
-          - "androidx.*"
-        update-types:
-          - "minor"
-          - "patch"
-      kotlin:
-        patterns:
-          - "org.jetbrains.kotlin.*"
-          - "com.google.devtools.ksp"
-        update-types:
-          - "minor"
-          - "patch"
-      compose:
-        patterns:
-          - "androidx.compose.*"
-        update-types:
-          - "minor"
-          - "patch"
+    ignore:
+      - dependency-name: "org.jetbrains.kotlin:*"
+        update-types: ["version-update:semver-major"]
 
   - package-ecosystem: "github-actions"
     directory: "/"
@@ -46,7 +33,6 @@ updates:
     open-pull-requests-limit: 5
     commit-message:
       prefix: "ci"
-      include: "scope"
     labels:
       - "github-actions"
       - "dependencies"

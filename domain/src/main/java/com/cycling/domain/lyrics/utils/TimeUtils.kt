@@ -12,8 +12,14 @@ internal fun String.parseAsTime(): Int {
         if (timeParts.size == 1) return seconds
 
         val millisStr = timeParts[1]
-        val normalizedMillisStr = millisStr.padEnd(3, '0').substring(0, 3)
-        val millis = normalizedMillisStr.toIntOrNull() ?: 0
+        val millis = when (millisStr.length) {
+            1 -> millisStr.toIntOrNull()?.times(10) ?: 0
+            2 -> millisStr.toIntOrNull()?.times(10) ?: 0
+            else -> {
+                val normalizedMillisStr = millisStr.padEnd(3, '0').substring(0, 3)
+                normalizedMillisStr.toIntOrNull() ?: 0
+            }
+        }
 
         return seconds + millis
     }

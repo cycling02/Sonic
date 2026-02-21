@@ -13,10 +13,10 @@ object LrcParser : ILyricsParser {
         val data = lyricsLines
             .flatMap { line -> parseLine(line) }
             .combineRawWithTranslation()
+            .sortedBy { it.start }
             .rearrangeTime()
             .map { it.toSyncedLine() }
             .filter { it.content.isNotBlank() }
-            .sortedBy { it.start }
         return SyncedLyrics(lines = data)
     }
 

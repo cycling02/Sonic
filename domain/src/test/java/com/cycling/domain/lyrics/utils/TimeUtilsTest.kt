@@ -86,12 +86,8 @@ class TimeUtilsTest {
         val testValues = listOf(0, 1000, 5000, 60000, 3600000, 9045500)
         testValues.forEach { original ->
             val formatted = original.toTimeFormattedString()
-            val timeParts = formatted.split(":")
-            val lastPart = timeParts.last()
-            val reconstructed = timeParts.dropLast(1).fold(0) { acc, part ->
-                acc * 60 + part.toInt() * 1000
-            } + lastPart.replace(".", "").toInt()
-            assertEquals(original, reconstructed)
+            val reconstructed = formatted.parseAsTime()
+            assertEquals("Failed for original=$original, formatted=$formatted", original, reconstructed)
         }
     }
 }

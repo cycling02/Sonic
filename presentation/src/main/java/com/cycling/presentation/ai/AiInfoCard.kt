@@ -231,8 +231,9 @@ private fun InfoContent(
         Spacer(modifier = Modifier.height(16.dp))
         MarkdownText(
             markdown = info.content,
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurface
+            style = MaterialTheme.typography.bodyMedium.copy(
+                color = MaterialTheme.colorScheme.onSurface
+            )
         )
     }
 }
