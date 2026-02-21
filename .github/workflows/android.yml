@@ -2,10 +2,7 @@ name: Android CI
 
 on:
   push:
-    branches: [main, master]
     tags: ["v*"]
-  pull_request:
-    branches: [main, master]
 
 jobs:
   build:
@@ -26,19 +23,29 @@ jobs:
 
       - run: ./gradlew assembleRelease
 
-      - uses: actions/upload-artifact@v6
+      - uses: actions/upload-artifact@v4
         with:
           name: app-release
           path: app/build/outputs/apk/release/app-release.apk
 
   release:
     needs: build
-    if: startsWith(github.ref, 'refs/tags/v')
     runs-on: ubuntu-latest
     permissions:
       contents: write
 
     steps:
+      - uses: actions/checkout@v4
+
+      - name: Extract changelog
+        id: changelog
+        run: |
+          VERSION=${GITHUB_REF_NAME#v}
+          CONTENT=$(sed -n "/^## \[$VERSION\]/,/^## \[/p" CHANGELOG.md | sed '$d')
+          echo "content<<EOF" >> $GITHUB_OUTPUT
+          echo "$CONTENT" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
       - uses: actions/download-artifact@v4
         with:
           name: app-release
@@ -46,6 +53,6 @@ jobs:
 
       - uses: softprops/action-gh-release@v2
         with:
-          name: Release ${{ github.ref_name }}
-          generate_release_notes: true
+          name: Sonic-${{ github.ref_name }}
+          body: ${{ steps.changelog.outputs.content }}
           files: artifacts/app-release.apk
