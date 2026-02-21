@@ -10,6 +10,7 @@ import com.cycling.domain.model.Album
 import com.cycling.domain.model.Artist
 import com.cycling.domain.model.Song
 import dagger.hilt.android.qualifiers.ApplicationContext
+import timber.log.Timber
 import java.io.File
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -19,6 +20,7 @@ class MediaStoreHelper @Inject constructor(
     @ApplicationContext private val context: Context
 ) {
     fun queryAllSongs(excludedPaths: List<String> = emptyList()): List<Song> {
+        Timber.d("queryAllSongs: starting query, excludedPaths = $excludedPaths")
         val songs = mutableListOf<Song>()
         val projection = arrayOf(
             MediaStore.Audio.Media._ID,
@@ -56,11 +58,13 @@ class MediaStoreHelper @Inject constructor(
                 }
             }
         }
+        Timber.d("queryAllSongs: found ${songs.size} songs")
 
         return songs
     }
 
     fun queryAllAlbums(): List<Album> {
+        Timber.d("queryAllAlbums: starting query")
         val albums = mutableListOf<Album>()
         val projection = arrayOf(
             MediaStore.Audio.Albums._ID,
@@ -84,11 +88,13 @@ class MediaStoreHelper @Inject constructor(
                 albums.add(cursor.toAlbum())
             }
         }
+        Timber.d("queryAllAlbums: found ${albums.size} albums")
 
         return albums
     }
 
     fun queryAllArtists(): List<Artist> {
+        Timber.d("queryAllArtists: starting query")
         val artists = mutableListOf<Artist>()
         val projection = arrayOf(
             MediaStore.Audio.Artists._ID,
@@ -112,6 +118,7 @@ class MediaStoreHelper @Inject constructor(
                 artists.add(artist.copy(artistArt = artistArt))
             }
         }
+        Timber.d("queryAllArtists: found ${artists.size} artists")
 
         return artists
     }

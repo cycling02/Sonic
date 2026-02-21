@@ -14,6 +14,7 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import timber.log.Timber
 import javax.inject.Inject
 
 @HiltViewModel
@@ -62,12 +63,14 @@ class LyricsViewModel @Inject constructor(
     }
 
     private fun loadLyrics(songPath: String) {
+        Timber.d("loadLyrics: songPath=$songPath")
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
 
             val result = getLyricsUseCase(songPath)
             val syncedLyrics = result.syncedLyrics
 
+            Timber.d("loadLyrics: hasLyrics=${syncedLyrics != null && syncedLyrics.lines.isNotEmpty()}, lines=${syncedLyrics?.lines?.size ?: 0}")
             _uiState.update {
                 it.copy(
                     lyrics = syncedLyrics,

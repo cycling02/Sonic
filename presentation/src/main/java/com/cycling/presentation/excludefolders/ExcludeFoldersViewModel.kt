@@ -13,6 +13,7 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import timber.log.Timber
 import javax.inject.Inject
 
 @HiltViewModel
@@ -31,6 +32,7 @@ class ExcludeFoldersViewModel @Inject constructor(
     }
 
     fun handleIntent(intent: ExcludeFoldersIntent) {
+        Timber.d("handleIntent: $intent")
         when (intent) {
             is ExcludeFoldersIntent.LoadFolders -> loadFolders()
             is ExcludeFoldersIntent.AddFolder -> addFolder(intent.path)
@@ -39,8 +41,10 @@ class ExcludeFoldersViewModel @Inject constructor(
     }
 
     private fun loadFolders() {
+        Timber.d("loadFolders: starting")
         viewModelScope.launch {
             excludedFolderRepository.excludedFolders.collect { folders ->
+                Timber.d("loadFolders: loaded ${folders.size} folders")
                 _uiState.update { it.copy(folders = folders, isLoading = false) }
             }
         }

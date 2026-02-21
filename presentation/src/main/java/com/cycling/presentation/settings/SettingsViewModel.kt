@@ -9,6 +9,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import timber.log.Timber
 import javax.inject.Inject
 
 @HiltViewModel
@@ -33,6 +34,7 @@ class SettingsViewModel @Inject constructor(
     )
 
     fun setThemeMode(mode: ThemeMode) {
+        Timber.d("setThemeMode: mode=$mode")
         viewModelScope.launch {
             themeRepository.setThemeMode(mode)
         }

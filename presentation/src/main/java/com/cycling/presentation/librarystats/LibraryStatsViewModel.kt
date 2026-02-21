@@ -12,6 +12,7 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import timber.log.Timber
 import javax.inject.Inject
 
 @HiltViewModel
@@ -30,21 +31,25 @@ class LibraryStatsViewModel @Inject constructor(
     }
 
     fun handleIntent(intent: LibraryStatsIntent) {
+        Timber.d("handleIntent: $intent")
         when (intent) {
             is LibraryStatsIntent.LoadData -> loadData()
         }
     }
 
     private fun loadData() {
+        Timber.d("loadData: starting")
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, error = null) }
             try {
                 val stats = getLibraryStatsUseCase()
+                Timber.d("loadData: loaded stats successfully")
                 _uiState.update { it.copy(
                     stats = stats,
                     isLoading = false
                 )}
             } catch (e: Exception) {
+                Timber.e(e, "loadData: error loading stats")
                 _uiState.update { it.copy(
                     isLoading = false,
                     error = e.message

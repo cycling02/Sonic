@@ -19,6 +19,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import timber.log.Timber
 import javax.inject.Inject
 
 @HiltViewModel
@@ -53,22 +54,70 @@ class HomeViewModel @Inject constructor(
 
     fun handleIntent(intent: HomeIntent) {
         when (intent) {
-            is HomeIntent.LoadData -> loadData()
-            is HomeIntent.SongClick -> handleSongClick(intent.song)
-            is HomeIntent.AlbumClick -> handleAlbumClick(intent.album)
-            is HomeIntent.ArtistClick -> handleArtistClick(intent.artist)
-            is HomeIntent.NavigateToSongs -> navigateTo(HomeEffect.NavigateToSongs)
-            is HomeIntent.NavigateToAlbums -> navigateTo(HomeEffect.NavigateToAlbums)
-            is HomeIntent.NavigateToArtists -> navigateTo(HomeEffect.NavigateToArtists)
-            is HomeIntent.NavigateToPlaylists -> navigateTo(HomeEffect.NavigateToPlaylists)
-            is HomeIntent.NavigateToSettings -> navigateTo(HomeEffect.NavigateToSettings)
-            is HomeIntent.NavigateToScan -> navigateTo(HomeEffect.NavigateToScan)
-            is HomeIntent.NavigateToFavorites -> navigateTo(HomeEffect.NavigateToFavorites)
-            is HomeIntent.NavigateToRecentlyPlayed -> navigateTo(HomeEffect.NavigateToRecentlyPlayed)
-            is HomeIntent.NavigateToMostPlayed -> navigateTo(HomeEffect.NavigateToMostPlayed)
-            is HomeIntent.NavigateToSearch -> navigateTo(HomeEffect.NavigateToSearch)
-            is HomeIntent.PlayPause -> playerRepository.playPause()
-            is HomeIntent.MiniPlayerClick -> handleMiniPlayerClick()
+            is HomeIntent.LoadData -> {
+                Timber.d("handleIntent: LoadData")
+                loadData()
+            }
+            is HomeIntent.SongClick -> {
+                Timber.d("handleIntent: SongClick songId=${intent.song.id}")
+                handleSongClick(intent.song)
+            }
+            is HomeIntent.AlbumClick -> {
+                Timber.d("handleIntent: AlbumClick albumId=${intent.album.id}")
+                handleAlbumClick(intent.album)
+            }
+            is HomeIntent.ArtistClick -> {
+                Timber.d("handleIntent: ArtistClick artistId=${intent.artist.id}")
+                handleArtistClick(intent.artist)
+            }
+            is HomeIntent.NavigateToSongs -> {
+                Timber.d("handleIntent: NavigateToSongs")
+                navigateTo(HomeEffect.NavigateToSongs)
+            }
+            is HomeIntent.NavigateToAlbums -> {
+                Timber.d("handleIntent: NavigateToAlbums")
+                navigateTo(HomeEffect.NavigateToAlbums)
+            }
+            is HomeIntent.NavigateToArtists -> {
+                Timber.d("handleIntent: NavigateToArtists")
+                navigateTo(HomeEffect.NavigateToArtists)
+            }
+            is HomeIntent.NavigateToPlaylists -> {
+                Timber.d("handleIntent: NavigateToPlaylists")
+                navigateTo(HomeEffect.NavigateToPlaylists)
+            }
+            is HomeIntent.NavigateToSettings -> {
+                Timber.d("handleIntent: NavigateToSettings")
+                navigateTo(HomeEffect.NavigateToSettings)
+            }
+            is HomeIntent.NavigateToScan -> {
+                Timber.d("handleIntent: NavigateToScan")
+                navigateTo(HomeEffect.NavigateToScan)
+            }
+            is HomeIntent.NavigateToFavorites -> {
+                Timber.d("handleIntent: NavigateToFavorites")
+                navigateTo(HomeEffect.NavigateToFavorites)
+            }
+            is HomeIntent.NavigateToRecentlyPlayed -> {
+                Timber.d("handleIntent: NavigateToRecentlyPlayed")
+                navigateTo(HomeEffect.NavigateToRecentlyPlayed)
+            }
+            is HomeIntent.NavigateToMostPlayed -> {
+                Timber.d("handleIntent: NavigateToMostPlayed")
+                navigateTo(HomeEffect.NavigateToMostPlayed)
+            }
+            is HomeIntent.NavigateToSearch -> {
+                Timber.d("handleIntent: NavigateToSearch")
+                navigateTo(HomeEffect.NavigateToSearch)
+            }
+            is HomeIntent.PlayPause -> {
+                Timber.d("handleIntent: PlayPause")
+                playerRepository.playPause()
+            }
+            is HomeIntent.MiniPlayerClick -> {
+                Timber.d("handleIntent: MiniPlayerClick")
+                handleMiniPlayerClick()
+            }
         }
     }
     
@@ -81,6 +130,7 @@ class HomeViewModel @Inject constructor(
     }
 
     private fun loadData() {
+        Timber.d("loadData: starting")
         songsLoaded = false
         albumsLoaded = false
         artistsLoaded = false
@@ -93,6 +143,7 @@ class HomeViewModel @Inject constructor(
             
             launch {
                 getAllSongsUseCase().collectLatest { songs ->
+                    Timber.d("loadData: loaded ${songs.size} songs")
                     _uiState.update { state ->
                         state.copy(
                             recentlyAdded = songs.sortedByDescending { it.dateAdded }.take(10)
@@ -105,6 +156,7 @@ class HomeViewModel @Inject constructor(
             
             launch {
                 getAllAlbumsUseCase().collectLatest { albums ->
+                    Timber.d("loadData: loaded ${albums.size} albums")
                     _uiState.update { state ->
                         state.copy(topAlbums = albums.take(10))
                     }
@@ -115,6 +167,7 @@ class HomeViewModel @Inject constructor(
             
             launch {
                 getAllArtistsUseCase().collectLatest { artists ->
+                    Timber.d("loadData: loaded ${artists.size} artists")
                     _uiState.update { state ->
                         state.copy(topArtists = artists.take(10))
                     }
@@ -125,6 +178,7 @@ class HomeViewModel @Inject constructor(
 
             launch {
                 getFavoriteSongsUseCase().collectLatest { favorites ->
+                    Timber.d("loadData: loaded ${favorites.size} favorites")
                     _uiState.update { state ->
                         state.copy(favoriteSongs = favorites.take(10))
                     }
@@ -135,6 +189,7 @@ class HomeViewModel @Inject constructor(
 
             launch {
                 getMostPlayedSongsUseCase().collectLatest { mostPlayed ->
+                    Timber.d("loadData: loaded ${mostPlayed.size} mostPlayed")
                     _uiState.update { state ->
                         state.copy(mostPlayed = mostPlayed.take(10))
                     }
@@ -145,6 +200,7 @@ class HomeViewModel @Inject constructor(
 
             launch {
                 getRecentlyPlayedSongsUseCase().collectLatest { recentlyPlayed ->
+                    Timber.d("loadData: loaded ${recentlyPlayed.size} recentlyPlayed")
                     _uiState.update { state ->
                         state.copy(recentlyPlayed = recentlyPlayed.take(10))
                     }

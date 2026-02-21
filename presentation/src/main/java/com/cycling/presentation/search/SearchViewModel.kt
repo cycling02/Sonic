@@ -21,6 +21,7 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import timber.log.Timber
 import javax.inject.Inject
 
 @OptIn(FlowPreview::class)
@@ -153,10 +154,12 @@ class SearchViewModel @Inject constructor(
     }
 
     private fun performSearch(query: String) {
+        Timber.d("performSearch: query=$query")
         _uiState.update { it.copy(isSearching = true, error = null) }
         
         searchAllUseCase(query)
             .onEach { result ->
+                Timber.d("performSearch: found ${result.songs.size} songs, ${result.albums.size} albums, ${result.artists.size} artists")
                 _uiState.update { 
                     it.copy(
                         songs = result.songs,

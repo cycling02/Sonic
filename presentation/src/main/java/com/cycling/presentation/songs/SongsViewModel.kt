@@ -17,6 +17,7 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import timber.log.Timber
 import javax.inject.Inject
 
 @HiltViewModel
@@ -61,8 +62,10 @@ class SongsViewModel @Inject constructor(
     }
 
     private fun loadSongs() {
+        Timber.d("loadSongs: starting")
         viewModelScope.launch {
             songRepository.getAllSongs().collect { songs ->
+                Timber.d("loadSongs: loaded ${songs.size} songs")
                 _uiState.update { it.copy(songs = songs, isLoading = false) }
             }
         }

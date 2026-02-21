@@ -3,6 +3,7 @@ package com.cycling.data.di
 import com.cycling.data.repository.AiRepositoryImpl
 import com.cycling.data.repository.AlbumRepositoryImpl
 import com.cycling.data.repository.ArtistRepositoryImpl
+import com.cycling.data.repository.AudioMetadataRepositoryImpl
 import com.cycling.data.repository.ExcludedFolderRepositoryImpl
 import com.cycling.data.repository.LyricsRepositoryImpl
 import com.cycling.data.repository.MusicScannerRepositoryImpl
@@ -15,6 +16,7 @@ import com.cycling.data.repository.ThemeRepositoryImpl
 import com.cycling.domain.repository.AiRepository
 import com.cycling.domain.repository.AlbumRepository
 import com.cycling.domain.repository.ArtistRepository
+import com.cycling.domain.repository.AudioMetadataRepository
 import com.cycling.domain.repository.ExcludedFolderRepository
 import com.cycling.domain.repository.LyricsRepository
 import com.cycling.domain.repository.MusicScannerRepository
@@ -105,4 +107,10 @@ abstract class RepositoryModule {
     abstract fun bindLyricsRepository(
         lyricsRepositoryImpl: LyricsRepositoryImpl
     ): LyricsRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindAudioMetadataRepository(
+        audioMetadataRepositoryImpl: AudioMetadataRepositoryImpl
+    ): AudioMetadataRepository
 }

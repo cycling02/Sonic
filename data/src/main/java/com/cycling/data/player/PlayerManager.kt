@@ -24,6 +24,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.guava.await
 import kotlinx.coroutines.launch
+import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -49,10 +50,12 @@ class PlayerManager @Inject constructor(
 
     private val playerListener = object : Player.Listener {
         override fun onIsPlayingChanged(isPlaying: Boolean) {
+            Timber.d("Player state changed: isPlaying=$isPlaying")
             _playerState.update { it.copy(isPlaying = isPlaying) }
         }
 
         override fun onPlaybackStateChanged(playbackState: Int) {
+            Timber.d("Playback state changed: $playbackState")
             if (playbackState == Player.STATE_ENDED) {
                 onSongEnded()
             }
@@ -60,6 +63,7 @@ class PlayerManager @Inject constructor(
         }
 
         override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
+            Timber.d("Media item transition: ${mediaItem?.mediaMetadata?.title}, reason=$reason")
             updatePlaybackPosition()
             resetPlayCountFlag()
         }
@@ -69,6 +73,7 @@ class PlayerManager @Inject constructor(
         return try {
             if (mediaController != null) return true
 
+            Timber.d("Connecting to PlayerService...")
             PlayerService.start(context)
 
             val sessionToken = SessionToken(context, android.content.ComponentName(context, PlayerService::class.java))
@@ -77,8 +82,10 @@ class PlayerManager @Inject constructor(
             mediaController?.addListener(playerListener)
 
             startProgressUpdateLoop()
+            Timber.d("Connected to PlayerService successfully")
             true
         } catch (e: Exception) {
+            Timber.e(e, "Failed to connect to PlayerService")
             false
         }
     }
@@ -161,6 +168,8 @@ class PlayerManager @Inject constructor(
     fun playSong(song: Song, queue: List<Song> = emptyList()) {
         val player = mediaController ?: return
 
+        Timber.d("playSong: ${song.title} by ${song.artist}, queueSize=${queue.size}")
+
         if (queue.isNotEmpty()) {
             playbackQueue = queue.toMutableList()
             currentIndex = queue.indexOf(song)
@@ -196,19 +205,23 @@ class PlayerManager @Inject constructor(
     fun playPause() {
         val player = mediaController ?: return
         if (player.isPlaying) {
+            Timber.d("playPause: pausing playback")
             player.pause()
         } else {
+            Timber.d("playPause: resuming playback")
             player.play()
         }
     }
 
     fun seekTo(position: Long) {
         val player = mediaController ?: return
+        Timber.d("seekTo: position=$position ms")
         player.seekTo(position)
         _playerState.update { it.copy(playbackPosition = position) }
     }
 
     fun skipToNext() {
+        Timber.d("skipToNext: currentIndex=$currentIndex, queueSize=${playbackQueue.size}")
         skipToNextInternal(wrapAround = _playerState.value.repeatMode == RepeatMode.ALL)
     }
 
@@ -232,7 +245,10 @@ class PlayerManager @Inject constructor(
         val player = mediaController ?: return
         if (playbackQueue.isEmpty()) return
 
+        Timber.d("skipToPrevious: currentIndex=$currentIndex, position=${player.currentPosition}")
+
         if (player.currentPosition > 3000) {
+            Timber.d("skipToPrevious: seeking to beginning (position > 3000ms)")
             player.seekTo(0)
             return
         }
@@ -279,14 +295,17 @@ class PlayerManager @Inject constructor(
     }
 
     fun setRepeatMode(repeatMode: RepeatMode) {
+        Timber.d("setRepeatMode: $repeatMode")
         _playerState.update { it.copy(repeatMode = repeatMode) }
     }
 
     fun setShuffleMode(shuffle: Boolean) {
+        Timber.d("setShuffleMode: $shuffle")
         _playerState.update { it.copy(shuffleMode = shuffle) }
     }
 
     fun addToQueue(song: Song) {
+        Timber.d("addToQueue: ${song.title}")
         playbackQueue.add(song)
         _playerState.update { it.copy(playbackQueue = playbackQueue.toList()) }
     }
@@ -295,6 +314,7 @@ class PlayerManager @Inject constructor(
         if (index !in playbackQueue.indices) return
 
         val player = mediaController ?: return
+        Timber.d("removeFromQueue: index=$index, currentIndex=$currentIndex")
         playbackQueue.removeAt(index)
         if (currentIndex > index) {
             currentIndex--
@@ -302,6 +322,7 @@ class PlayerManager @Inject constructor(
             if (playbackQueue.isNotEmpty()) {
                 playSongAtIndex(minOf(currentIndex, playbackQueue.size - 1))
             } else {
+                Timber.d("removeFromQueue: queue is now empty, stopping playback")
                 player.stop()
                 _playerState.update { PlayerState() }
             }
@@ -311,6 +332,7 @@ class PlayerManager @Inject constructor(
 
     fun clearQueue() {
         val player = mediaController ?: return
+        Timber.d("clearQueue: clearing queue with ${playbackQueue.size} items")
         playbackQueue.clear()
         currentIndex = -1
         player.stop()

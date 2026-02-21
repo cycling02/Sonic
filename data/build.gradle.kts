@@ -62,7 +62,15 @@ dependencies {
 
     implementation(libs.mp3agic)
 
+    implementation(libs.timber)
+
+    implementation(libs.coil.network.okhttp)
+    implementation(libs.coil.compose)
+
     testImplementation(libs.junit)
+    testImplementation(libs.mockk)
+    testImplementation(libs.kotlinx.coroutines.test)
+    testImplementation(libs.turbine)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
 }

@@ -59,6 +59,7 @@ import com.cycling.presentation.theme.SonicColors
 fun SongsScreen(
     onNavigateBack: () -> Unit,
     onNavigateToPlayer: (Long) -> Unit,
+    onNavigateToSongDetail: (Long) -> Unit = {},
     viewModel: SongsViewModel = hiltViewModel(),
     playerViewModel: com.cycling.presentation.player.PlayerViewModel = hiltViewModel()
 ) {
@@ -154,7 +155,14 @@ fun SongsScreen(
                                 moreMenuExpanded = expandedSongId == song.id,
                                 onMoreClick = { expandedSongId = song.id },
                                 onMoreDismiss = { expandedSongId = null },
+                                onClick = { viewModel.handleIntent(SongsIntent.SongClick(song)) },
                                 moreMenuItems = listOf(
+                                    MenuItem(
+                                        name = "查看详情",
+                                        onClick = {
+                                            onNavigateToSongDetail(song.id)
+                                        }
+                                    ),
                                     MenuItem(
                                         name = "添加到播放列表",
                                         onClick = {

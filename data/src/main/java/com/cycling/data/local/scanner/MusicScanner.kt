@@ -14,6 +14,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.withContext
+import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -30,27 +31,34 @@ class MusicScanner @Inject constructor(
     suspend fun scanMusic(): Result<ScanResult> = withContext(Dispatchers.IO) {
         try {
             val startTime = System.currentTimeMillis()
+            Timber.d("scanMusic: starting scan")
             
             _scanProgress.value = ScanProgress(
                 isScanning = true,
                 currentStep = ScanStep.QUERYING_MEDIASTORE
             )
+            Timber.d("scanMediaStore: querying MediaStore for songs")
             
             val excludedPaths = excludedFolderRepository.getExcludedPaths()
+            Timber.d("scanMediaStore: excluded paths = $excludedPaths")
             val songs = mediaStoreHelper.queryAllSongs(excludedPaths)
+            Timber.d("scanMediaStore: found ${songs.size} songs")
             
             _scanProgress.value = ScanProgress(
                 isScanning = true,
                 currentStep = ScanStep.SAVING_TO_DATABASE,
                 totalSongs = songs.size
             )
+            Timber.d("saveSongsToDatabase: starting to save ${songs.size} songs to database")
             
             songDao.deleteAllSongs()
+            Timber.d("saveSongsToDatabase: deleted all existing songs")
             
             var processed = 0
             songs.chunked(BATCH_SIZE).forEach { chunk ->
                 songDao.insertSongs(chunk.map { it.toEntity() })
                 processed += chunk.size
+                Timber.d("saveSongsToDatabase: saved batch, progress = $processed/${songs.size}")
                 _scanProgress.value = ScanProgress(
                     isScanning = true,
                     currentStep = ScanStep.SAVING_TO_DATABASE,
@@ -58,9 +66,11 @@ class MusicScanner @Inject constructor(
                     totalSongs = songs.size
                 )
             }
+            Timber.d("saveSongsToDatabase: completed saving $processed songs")
             
             val albums = mediaStoreHelper.queryAllAlbums()
             val artists = mediaStoreHelper.queryAllArtists()
+            Timber.d("scanMusic: found ${albums.size} albums, ${artists.size} artists")
             
             val duration = System.currentTimeMillis() - startTime
             
@@ -71,6 +81,7 @@ class MusicScanner @Inject constructor(
                 totalSongs = songs.size
             )
             
+            Timber.d("scanMusic: completed in ${duration}ms")
             Result.success(
                 ScanResult(
                     songsFound = songs.size,
@@ -81,6 +92,7 @@ class MusicScanner @Inject constructor(
                 )
             )
         } catch (e: Exception) {
+            Timber.e(e, "scanMusic: error during scan")
             _scanProgress.value = ScanProgress(
                 isScanning = false,
                 currentStep = ScanStep.ERROR
@@ -90,6 +102,7 @@ class MusicScanner @Inject constructor(
     }
 
     fun resetProgress() {
+        Timber.d("resetProgress: resetting scan progress")
         _scanProgress.value = ScanProgress()
     }
 

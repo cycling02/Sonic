@@ -32,6 +32,7 @@ import com.cycling.presentation.search.SearchScreen
 import com.cycling.presentation.settings.ApiKeyConfigScreen
 import com.cycling.presentation.settings.SettingsScreen
 import com.cycling.presentation.songs.SongsScreen
+import com.cycling.presentation.songdetail.SongDetailScreen
 
 @Composable
 fun AppNavGraph(
@@ -65,6 +66,7 @@ fun AppNavGraph(
             SongsScreen(
                 onNavigateBack = { navController.popBackStack() },
                 onNavigateToPlayer = {  },
+                onNavigateToSongDetail = { songId -> navController.navigate(Screen.SongDetail(songId)) },
                 playerViewModel = playerViewModel
             )
         }
@@ -193,6 +195,13 @@ fun AppNavGraph(
         composable<Screen.Lyrics> {
             LyricsScreen(
                 onNavigateBack = { navController.popBackStack() }
+            )
+        }
+
+        composable<Screen.SongDetail> {
+            SongDetailScreen(
+                onNavigateBack = { navController.popBackStack() },
+                onNavigateToPlayer = { songId -> }
             )
         }
     }

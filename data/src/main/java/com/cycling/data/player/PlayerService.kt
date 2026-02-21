@@ -6,15 +6,12 @@ import android.app.NotificationManager
 import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
-import android.graphics.BitmapFactory
-import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import androidx.annotation.OptIn
 import androidx.core.app.NotificationCompat
 import androidx.core.app.ServiceCompat
 import androidx.media3.common.MediaItem
-import androidx.media3.common.MediaMetadata
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
@@ -30,10 +27,12 @@ import com.google.common.util.concurrent.Futures
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
+import timber.log.Timber
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -43,9 +42,13 @@ class PlayerService : MediaSessionService() {
     @Inject
     lateinit var exoPlayer: ExoPlayer
 
+    @Inject
+    lateinit var albumArtLoader: AlbumArtLoader
+
     private var mediaSession: MediaSession? = null
     private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
     private var albumArtBitmap: Bitmap? = null
+    private var currentLoadJob: Job? = null
 
     companion object {
         const val CHANNEL_ID = "player_channel"
@@ -63,6 +66,7 @@ class PlayerService : MediaSessionService() {
 
     override fun onCreate() {
         super.onCreate()
+        Timber.d("PlayerService onCreate")
         createNotificationChannel()
         mediaSession = MediaSession.Builder(this, exoPlayer)
             .setCallback(PlayerSessionCallback())
@@ -70,10 +74,12 @@ class PlayerService : MediaSessionService() {
 
         exoPlayer.addListener(object : Player.Listener {
             override fun onIsPlayingChanged(isPlaying: Boolean) {
+                Timber.d("PlayerService: isPlaying changed to $isPlaying")
                 updateNotification()
             }
 
             override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
+                Timber.d("PlayerService: mediaItem transition - ${mediaItem?.mediaMetadata?.title}")
                 loadAlbumArtFromMediaItem(mediaItem)
                 updateNotification()
             }
@@ -82,31 +88,35 @@ class PlayerService : MediaSessionService() {
 
     private fun loadAlbumArtFromMediaItem(mediaItem: MediaItem?) {
         val artworkUri = mediaItem?.mediaMetadata?.artworkUri
+        Timber.d("loadAlbumArtFromMediaItem: artworkUri=$artworkUri")
         if (artworkUri == null) {
+            Timber.d("loadAlbumArtFromMediaItem: no artworkUri, clearing albumArtBitmap")
             albumArtBitmap = null
             updateNotification()
             return
         }
 
-        serviceScope.launch {
-            albumArtBitmap = withContext(Dispatchers.IO) {
-                try {
-                    val inputStream = contentResolver.openInputStream(artworkUri)
-                    inputStream?.use { BitmapFactory.decodeStream(it) }
-                } catch (e: Exception) {
-                    null
-                }
-            }
+        currentLoadJob?.cancel()
+
+        currentLoadJob = serviceScope.launch {
+            Timber.d("loadAlbumArtFromMediaItem: loading album art from $artworkUri")
+            val bitmap = albumArtLoader.loadAlbumArt(artworkUri)
+            ensureActive()
+            albumArtBitmap = bitmap
+            Timber.d("loadAlbumArtFromMediaItem: album art loaded, bitmap=${bitmap != null}")
             updateNotification()
         }
     }
 
     private fun updateNotification() {
+        Timber.d("updateNotification: isPlaying=${exoPlayer.isPlaying}, mediaItemCount=${exoPlayer.mediaItemCount}")
         if (exoPlayer.isPlaying || exoPlayer.mediaItemCount > 0) {
             val notification = createNotification()
             if (exoPlayer.isPlaying) {
+                Timber.d("updateNotification: starting foreground")
                 startForeground(NOTIFICATION_ID, notification)
             } else {
+                Timber.d("updateNotification: updating notification (not playing)")
                 val notificationManager = getSystemService(NotificationManager::class.java)
                 notificationManager.notify(NOTIFICATION_ID, notification)
                 ServiceCompat.stopForeground(this, ServiceCompat.STOP_FOREGROUND_DETACH)
@@ -119,8 +129,10 @@ class PlayerService : MediaSessionService() {
     }
 
     override fun onDestroy() {
+        Timber.d("PlayerService onDestroy")
         mediaSession?.release()
         mediaSession = null
+        currentLoadJob?.cancel()
         serviceScope.cancel()
         super.onDestroy()
     }
@@ -157,7 +169,6 @@ class PlayerService : MediaSessionService() {
             .setShowWhen(false)
             .setStyle(
                 MediaStyleNotificationHelper.MediaStyle(mediaSession!!)
-                    .setShowActionsInCompactView(0, 1, 2)
             )
 
         albumArtBitmap?.let { bitmap ->

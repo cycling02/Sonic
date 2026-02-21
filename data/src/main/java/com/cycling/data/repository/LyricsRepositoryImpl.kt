@@ -8,6 +8,7 @@ import com.cycling.domain.lyrics.utils.LyricsFormatGuesser
 import com.cycling.domain.model.Lyrics
 import com.cycling.domain.model.LyricsSource
 import com.cycling.domain.repository.LyricsRepository
+import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -20,8 +21,10 @@ class LyricsRepositoryImpl @Inject constructor(
     private val parser = AutoParser(LyricsFormatGuesser())
 
     override suspend fun getLyrics(songPath: String): Lyrics {
+        Timber.d("getLyrics: songPath=$songPath")
         val fileLyrics = lyricsFileHelper.getLyricsContent(songPath)
         if (!fileLyrics.isNullOrBlank()) {
+            Timber.d("getLyrics: found file lyrics for songPath=$songPath")
             val syncedLyrics = parseLyrics(fileLyrics)
             return Lyrics(
                 syncedLyrics = syncedLyrics,
@@ -32,6 +35,7 @@ class LyricsRepositoryImpl @Inject constructor(
 
         val embeddedLyrics = embeddedLyricsHelper.extractLyrics(songPath)
         if (!embeddedLyrics.isNullOrBlank()) {
+            Timber.d("getLyrics: found embedded lyrics for songPath=$songPath")
             val syncedLyrics = parseLyrics(embeddedLyrics)
             return Lyrics(
                 syncedLyrics = syncedLyrics,
@@ -40,6 +44,7 @@ class LyricsRepositoryImpl @Inject constructor(
             )
         }
 
+        Timber.d("getLyrics: no lyrics found for songPath=$songPath")
         return Lyrics(
             syncedLyrics = null,
             rawContent = null,
@@ -51,6 +56,7 @@ class LyricsRepositoryImpl @Inject constructor(
         return try {
             parser.parse(content)
         } catch (e: Exception) {
+            Timber.e(e, "parseLyrics: failed to parse lyrics")
             null
         }
     }

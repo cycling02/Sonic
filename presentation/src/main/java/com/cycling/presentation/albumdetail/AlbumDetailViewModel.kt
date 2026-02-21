@@ -14,6 +14,7 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import timber.log.Timber
 import javax.inject.Inject
 
 @HiltViewModel
@@ -37,17 +38,25 @@ class AlbumDetailViewModel @Inject constructor(
 
     fun handleIntent(intent: AlbumDetailIntent) {
         when (intent) {
-            is AlbumDetailIntent.LoadAlbum -> loadAlbum()
-            is AlbumDetailIntent.SongClick -> onSongClick(intent.song)
+            is AlbumDetailIntent.LoadAlbum -> {
+                Timber.d("handleIntent: LoadAlbum")
+                loadAlbum()
+            }
+            is AlbumDetailIntent.SongClick -> {
+                Timber.d("handleIntent: SongClick songId=${intent.song.id}")
+                onSongClick(intent.song)
+            }
         }
     }
 
     private fun loadAlbum() {
+        Timber.d("loadAlbum: starting albumId=$albumId")
         viewModelScope.launch {
             val album = albumRepository.getAlbumById(albumId)
             _uiState.update { it.copy(album = album) }
             
             songRepository.getSongsByAlbum(albumId).collect { songs ->
+                Timber.d("loadAlbum: loaded ${songs.size} songs")
                 _uiState.update { it.copy(songs = songs, isLoading = false) }
             }
         }

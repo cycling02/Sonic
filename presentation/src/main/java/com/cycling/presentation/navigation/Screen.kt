@@ -59,4 +59,7 @@ sealed interface Screen {
 
     @Serializable
     data object Lyrics : Screen
+
+    @Serializable
+    data class SongDetail(val songId: Long) : Screen
 }

@@ -15,6 +15,7 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import timber.log.Timber
 import javax.inject.Inject
 
 @HiltViewModel
@@ -31,10 +32,12 @@ class ScanViewModel @Inject constructor(
     val uiEffect: SharedFlow<ScanEffect> = _uiEffect.asSharedFlow()
 
     init {
+        Timber.d("ScanViewModel: initialized")
         observeScanProgress()
     }
 
     fun handleIntent(intent: ScanIntent) {
+        Timber.d("handleIntent: $intent")
         when (intent) {
             is ScanIntent.StartScan -> startScan()
             is ScanIntent.ResetScan -> resetScan()
@@ -45,6 +48,7 @@ class ScanViewModel @Inject constructor(
     }
 
     fun checkAndRequestPermission(hasPermission: Boolean) {
+        Timber.d("checkAndRequestPermission: hasPermission = $hasPermission")
         if (hasPermission) {
             _uiState.update { it.copy(hasStoragePermission = true, shouldRequestPermission = false) }
         } else {
@@ -53,15 +57,18 @@ class ScanViewModel @Inject constructor(
     }
 
     private fun requestPermission() {
+        Timber.d("requestPermission: requesting storage permission")
         viewModelScope.launch {
             _uiEffect.emit(ScanEffect.RequestStoragePermission)
         }
     }
 
     private fun handlePermissionResult(granted: Boolean) {
+        Timber.d("handlePermissionResult: granted = $granted")
         if (granted) {
             _uiState.update { it.copy(hasStoragePermission = true, shouldRequestPermission = false) }
         } else {
+            Timber.w("handlePermissionResult: permission denied")
             _uiState.update { 
                 it.copy(
                     hasStoragePermission = false, 
@@ -73,8 +80,10 @@ class ScanViewModel @Inject constructor(
     }
 
     private fun observeScanProgress() {
+        Timber.d("observeScanProgress: starting to observe scan progress")
         viewModelScope.launch {
             getScanProgressUseCase().collect { progress ->
+                Timber.d("observeScanProgress: progress = ${progress.songsProcessed}/${progress.totalSongs}, step = ${progress.currentStep}")
                 _uiState.update { state ->
                     state.copy(
                         isScanning = progress.isScanning,
@@ -91,11 +100,13 @@ class ScanViewModel @Inject constructor(
     }
 
     private fun startScan() {
+        Timber.d("startScan: starting music scan")
         viewModelScope.launch {
             _uiState.update { it.copy(isScanning = true, error = null) }
             
             scanMusicUseCase()
                 .onSuccess { result ->
+                    Timber.d("startScan: scan completed successfully, found ${result.songsFound} songs")
                     _uiState.update { 
                         it.copy(
                             isScanning = false,
@@ -106,6 +117,7 @@ class ScanViewModel @Inject constructor(
                     _uiEffect.emit(ScanEffect.ShowToast("扫描完成: 发现 ${result.songsFound} 首歌曲"))
                 }
                 .onFailure { error ->
+                    Timber.e(error, "startScan: scan failed")
                     _uiState.update { 
                         it.copy(
                             isScanning = false,
@@ -119,11 +131,13 @@ class ScanViewModel @Inject constructor(
     }
 
     private fun resetScan() {
+        Timber.d("resetScan: resetting scan state")
         resetScanProgressUseCase()
         _uiState.update { ScanUiState() }
     }
 
     private fun navigateBack() {
+        Timber.d("navigateBack: navigating back")
         viewModelScope.launch {
             _uiEffect.emit(ScanEffect.NavigateBack)
         }

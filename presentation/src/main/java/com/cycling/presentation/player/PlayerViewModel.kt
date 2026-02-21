@@ -14,6 +14,7 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import timber.log.Timber
 import javax.inject.Inject
 
 @HiltViewModel
@@ -46,20 +47,59 @@ class PlayerViewModel @Inject constructor(
 
     fun handleIntent(intent: PlayerIntent) {
         when (intent) {
-            is PlayerIntent.PlaySong -> playSong(intent.song, intent.queue)
-            is PlayerIntent.PlayFromQueue -> playFromQueue(intent.index)
-            is PlayerIntent.PlayPause -> playPause()
-            is PlayerIntent.SeekTo -> seekTo(intent.position)
-            is PlayerIntent.SkipToNext -> skipToNext()
-            is PlayerIntent.SkipToPrevious -> skipToPrevious()
-            is PlayerIntent.ToggleRepeatMode -> toggleRepeatMode()
-            is PlayerIntent.ToggleShuffleMode -> toggleShuffleMode()
-            is PlayerIntent.AddToQueue -> addToQueue(intent.song)
-            is PlayerIntent.RemoveFromQueue -> removeFromQueue(intent.index)
-            is PlayerIntent.ClearQueue -> clearQueue()
-            is PlayerIntent.ToggleQueue -> toggleQueue()
+            is PlayerIntent.PlaySong -> {
+                Timber.d("handleIntent: PlaySong - ${intent.song.title}")
+                playSong(intent.song, intent.queue)
+            }
+            is PlayerIntent.PlayFromQueue -> {
+                Timber.d("handleIntent: PlayFromQueue - index=${intent.index}")
+                playFromQueue(intent.index)
+            }
+            is PlayerIntent.PlayPause -> {
+                Timber.d("handleIntent: PlayPause")
+                playPause()
+            }
+            is PlayerIntent.SeekTo -> {
+                Timber.d("handleIntent: SeekTo - position=${intent.position}")
+                seekTo(intent.position)
+            }
+            is PlayerIntent.SkipToNext -> {
+                Timber.d("handleIntent: SkipToNext")
+                skipToNext()
+            }
+            is PlayerIntent.SkipToPrevious -> {
+                Timber.d("handleIntent: SkipToPrevious")
+                skipToPrevious()
+            }
+            is PlayerIntent.ToggleRepeatMode -> {
+                Timber.d("handleIntent: ToggleRepeatMode")
+                toggleRepeatMode()
+            }
+            is PlayerIntent.ToggleShuffleMode -> {
+                Timber.d("handleIntent: ToggleShuffleMode")
+                toggleShuffleMode()
+            }
+            is PlayerIntent.AddToQueue -> {
+                Timber.d("handleIntent: AddToQueue - ${intent.song.title}")
+                addToQueue(intent.song)
+            }
+            is PlayerIntent.RemoveFromQueue -> {
+                Timber.d("handleIntent: RemoveFromQueue - index=${intent.index}")
+                removeFromQueue(intent.index)
+            }
+            is PlayerIntent.ClearQueue -> {
+                Timber.d("handleIntent: ClearQueue")
+                clearQueue()
+            }
+            is PlayerIntent.ToggleQueue -> {
+                Timber.d("handleIntent: ToggleQueue")
+                toggleQueue()
+            }
             is PlayerIntent.UpdateProgress -> { }
-            is PlayerIntent.ToggleFavorite -> toggleFavorite()
+            is PlayerIntent.ToggleFavorite -> {
+                Timber.d("handleIntent: ToggleFavorite")
+                toggleFavorite()
+            }
         }
     }
 

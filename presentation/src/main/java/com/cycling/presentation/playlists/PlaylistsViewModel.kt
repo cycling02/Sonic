@@ -10,6 +10,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import timber.log.Timber
 import javax.inject.Inject
 
 @HiltViewModel
@@ -43,27 +44,32 @@ class PlaylistsViewModel @Inject constructor(
     fun handleIntent(intent: PlaylistsIntent) {
         when (intent) {
             is PlaylistsIntent.PlaylistClick -> {
+                Timber.d("handleIntent: PlaylistClick playlistId=${intent.playlist.id}")
                 viewModelScope.launch {
                     _uiEffect.send(PlaylistsEffect.NavigateToPlaylistDetail(intent.playlist.id))
                 }
             }
             is PlaylistsIntent.CreatePlaylist -> {
+                Timber.d("handleIntent: CreatePlaylist name=${intent.name}")
                 viewModelScope.launch {
                     playlistRepository.createPlaylist(intent.name)
                     _uiEffect.send(PlaylistsEffect.ShowToast("播放列表已创建"))
                 }
             }
             is PlaylistsIntent.DeletePlaylist -> {
+                Timber.d("handleIntent: DeletePlaylist playlistId=${intent.playlistId}")
                 viewModelScope.launch {
                     playlistRepository.deletePlaylist(intent.playlistId)
                     _uiEffect.send(PlaylistsEffect.ShowToast("播放列表已删除"))
                 }
             }
             is PlaylistsIntent.ShowRenameDialog -> {
+                Timber.d("handleIntent: ShowRenameDialog playlistId=${intent.playlist.id}")
                 _playlistToRename.value = intent.playlist
                 _showRenameDialog.value = true
             }
             is PlaylistsIntent.RenamePlaylist -> {
+                Timber.d("handleIntent: RenamePlaylist playlistId=${intent.playlistId} newName=${intent.newName}")
                 viewModelScope.launch {
                     playlistRepository.renamePlaylist(intent.playlistId, intent.newName)
                     _showRenameDialog.value = false
@@ -72,6 +78,7 @@ class PlaylistsViewModel @Inject constructor(
                 }
             }
             is PlaylistsIntent.DismissRenameDialog -> {
+                Timber.d("handleIntent: DismissRenameDialog")
                 _showRenameDialog.value = false
                 _playlistToRename.value = null
             }

@@ -7,6 +7,7 @@ import com.cycling.data.store.AiInfoCacheStore
 import com.cycling.domain.model.AiInfo
 import com.cycling.domain.model.AiInfoType
 import com.cycling.domain.repository.AiRepository
+import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -24,29 +25,44 @@ class AiRepositoryImpl @Inject constructor(
     override suspend fun hasApiKey(): Boolean = apiKeyStore.hasApiKey()
 
     override suspend fun getCachedSongInfo(songTitle: String, artist: String): AiInfo? {
-        return aiInfoCacheStore.getSongInfo(songTitle, artist)
+        val cached = aiInfoCacheStore.getSongInfo(songTitle, artist)
+        Timber.d("getCachedSongInfo: songTitle=$songTitle, artist=$artist, found=${cached != null}")
+        return cached
     }
 
     override suspend fun getCachedArtistInfo(artistName: String): AiInfo? {
-        return aiInfoCacheStore.getArtistInfo(artistName)
+        val cached = aiInfoCacheStore.getArtistInfo(artistName)
+        Timber.d("getCachedArtistInfo: artistName=$artistName, found=${cached != null}")
+        return cached
     }
 
     override suspend fun getCachedAlbumInfo(albumTitle: String, artist: String): AiInfo? {
-        return aiInfoCacheStore.getAlbumInfo(albumTitle, artist)
+        val cached = aiInfoCacheStore.getAlbumInfo(albumTitle, artist)
+        Timber.d("getCachedAlbumInfo: albumTitle=$albumTitle, artist=$artist, found=${cached != null}")
+        return cached
     }
 
     override suspend fun getSongInfo(songTitle: String, artist: String): Result<AiInfo> {
+        Timber.d("getSongInfo: songTitle=$songTitle, artist=$artist")
         val cached = getCachedSongInfo(songTitle, artist)
         if (cached != null) {
+            Timber.d("getSongInfo: cache hit")
             return Result.success(cached)
         }
         
-        val apiKey = getApiKey() ?: return Result.failure(Exception("API Key 未配置"))
+        Timber.d("getSongInfo: cache miss, calling API")
+        val apiKey = getApiKey() ?: run {
+            Timber.w("getSongInfo: API Key not configured")
+            return Result.failure(Exception("API Key 未配置"))
+        }
         
         val prompt = buildSongPrompt(songTitle, artist)
         return callApi(apiKey, prompt, AiInfoType.SONG, songTitle).also { result ->
             result.onSuccess { info ->
+                Timber.d("getSongInfo: API call successful, caching result")
                 aiInfoCacheStore.saveSongInfo(songTitle, artist, info)
+            }.onFailure { error ->
+                Timber.e(error, "getSongInfo: API call failed")
             }
         }
     }
@@ -57,7 +73,11 @@ class AiRepositoryImpl @Inject constructor(
             return Result.success(cached)
         }
         
-        val apiKey = getApiKey() ?: return Result.failure(Exception("API Key 未配置"))
+        Timber.d("getArtistInfo: cache miss, calling API")
+        val apiKey = getApiKey() ?: run {
+            Timber.w("getArtistInfo: API Key not configured")
+            return Result.failure(Exception("API Key 未配置"))
+        }
         
         val prompt = buildArtistPrompt(artistName)
         return callApi(apiKey, prompt, AiInfoType.ARTIST, artistName).also { result ->
@@ -73,7 +93,11 @@ class AiRepositoryImpl @Inject constructor(
             return Result.success(cached)
         }
         
-        val apiKey = getApiKey() ?: return Result.failure(Exception("API Key 未配置"))
+        Timber.d("getAlbumInfo: cache miss, calling API")
+        val apiKey = getApiKey() ?: run {
+            Timber.w("getAlbumInfo: API Key not configured")
+            return Result.failure(Exception("API Key 未配置"))
+        }
         
         val prompt = buildAlbumPrompt(albumTitle, artist)
         return callApi(apiKey, prompt, AiInfoType.ALBUM, albumTitle).also { result ->
@@ -89,6 +113,7 @@ class AiRepositoryImpl @Inject constructor(
         type: AiInfoType,
         title: String
     ): Result<AiInfo> {
+        Timber.d("callApi: type=$type, title=$title")
         val request = DeepSeekRequest(
             messages = listOf(
                 DeepSeekRequest.Message(
@@ -104,6 +129,7 @@ class AiRepositoryImpl @Inject constructor(
 
         return deepSeekApiService.chat(apiKey, request).mapCatching { response ->
             val content = response.getContent() ?: throw Exception("API 返回空内容")
+            Timber.d("callApi: received response for type=$type, title=$title")
             AiInfo(
                 type = type,
                 title = title,

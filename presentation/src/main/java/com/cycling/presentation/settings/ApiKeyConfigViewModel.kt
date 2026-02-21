@@ -9,6 +9,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import timber.log.Timber
 import javax.inject.Inject
 
 @HiltViewModel
@@ -28,16 +29,20 @@ class ApiKeyConfigViewModel @Inject constructor(
     )
 
     fun saveApiKey(apiKey: String) {
+        Timber.d("saveApiKey: saving API key")
         viewModelScope.launch {
             aiRepository.setApiKey(apiKey)
             _saved.value = true
+            Timber.d("saveApiKey: API key saved successfully")
         }
     }
 
     fun clearApiKey() {
+        Timber.d("clearApiKey: clearing API key")
         viewModelScope.launch {
             aiRepository.setApiKey("")
             _saved.value = true
+            Timber.d("clearApiKey: API key cleared successfully")
         }
     }
 }

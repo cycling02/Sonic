@@ -15,6 +15,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import timber.log.Timber
 import javax.inject.Inject
 
 @HiltViewModel
@@ -34,6 +35,7 @@ class MostPlayedViewModel @Inject constructor(
     }
 
     fun handleIntent(intent: MostPlayedIntent) {
+        Timber.d("handleIntent: $intent")
         when (intent) {
             is MostPlayedIntent.LoadData -> loadData()
             is MostPlayedIntent.SongClick -> handleSongClick(intent.song)
@@ -43,9 +45,11 @@ class MostPlayedViewModel @Inject constructor(
     }
 
     private fun loadData() {
+        Timber.d("loadData: starting")
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, error = null) }
             getMostPlayedSongsUseCase().collectLatest { songs ->
+                Timber.d("loadData: loaded ${songs.size} songs")
                 _uiState.update { it.copy(
                     songs = songs,
                     isLoading = false

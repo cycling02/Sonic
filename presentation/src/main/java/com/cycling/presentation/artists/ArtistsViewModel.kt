@@ -9,6 +9,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import timber.log.Timber
 import javax.inject.Inject
 
 @HiltViewModel
@@ -35,6 +36,7 @@ class ArtistsViewModel @Inject constructor(
     fun handleIntent(intent: ArtistsIntent) {
         when (intent) {
             is ArtistsIntent.ArtistClick -> {
+                Timber.d("handleIntent: ArtistClick artistId=${intent.artist.id}")
                 viewModelScope.launch {
                     _uiEffect.send(ArtistsEffect.NavigateToArtistDetail(intent.artist.id))
                 }

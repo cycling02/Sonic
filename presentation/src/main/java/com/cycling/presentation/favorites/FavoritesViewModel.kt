@@ -16,6 +16,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import timber.log.Timber
 import javax.inject.Inject
 
 @HiltViewModel
@@ -46,9 +47,11 @@ class FavoritesViewModel @Inject constructor(
     }
 
     private fun loadData() {
+        Timber.d("loadData: starting")
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, error = null) }
             getFavoriteSongsUseCase().collectLatest { songs ->
+                Timber.d("loadData: loaded ${songs.size} favorites")
                 _uiState.update { it.copy(
                     songs = songs,
                     isLoading = false
