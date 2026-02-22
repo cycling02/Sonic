@@ -14,12 +14,9 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.QueueMusic
-import androidx.compose.material.icons.filled.QueueMusic
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -31,19 +28,19 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.cycling.domain.model.Song
-import com.cycling.presentation.components.IOSTopAppBar
+import com.cycling.presentation.components.IOSScreenWithTopBar
 import com.cycling.presentation.components.MenuItem
 import com.cycling.presentation.components.PlayActionButtons
 import com.cycling.presentation.components.SongListItem
 import com.cycling.presentation.components.formatDuration
+import com.cycling.presentation.theme.DesignTokens
 import com.cycling.presentation.theme.SonicColors
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PlaylistDetailScreen(
     onNavigateBack: () -> Unit,
@@ -62,79 +59,72 @@ fun PlaylistDetailScreen(
         }
     }
 
-    Scaffold(
-        topBar = {
-            IOSTopAppBar(
-                title = "播放列表详情",
-                onNavigateBack = onNavigateBack
-            )
-        },
-        containerColor = MaterialTheme.colorScheme.background
-    ) { paddingValues ->
-        if (uiState.isLoading) {
+    IOSScreenWithTopBar(
+        title = "播放列表详情",
+        onNavigateBack = onNavigateBack,
+        isLoading = uiState.isLoading,
+        loadingContent = {
             Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(paddingValues),
+                modifier = Modifier.fillMaxSize(),
                 contentAlignment = Alignment.Center
             ) {
                 CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
             }
-        } else {
-            LazyColumn(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(paddingValues)
-            ) {
-                item {
-                    PlaylistHeader(
-                        playlist = uiState.playlist,
-                        songCount = uiState.songs.size
-                    )
-                }
+        }
+    ) {
+        LazyColumn(modifier = Modifier.fillMaxSize()) {
+            item {
+                PlaylistHeader(
+                    playlist = uiState.playlist,
+                    songCount = uiState.songs.size
+                )
+            }
 
-                item {
-                    PlayActionButtons(
-                        onPlayAll = {
-                            uiState.songs.firstOrNull()?.let { song ->
-                                viewModel.handleIntent(PlaylistDetailIntent.SongClick(song))
-                            }
-                        },
-                        onShuffle = {
-                            uiState.songs.randomOrNull()?.let { song ->
-                                viewModel.handleIntent(PlaylistDetailIntent.SongClick(song))
-                            }
+            item {
+                PlayActionButtons(
+                    onPlayAll = {
+                        uiState.songs.firstOrNull()?.let { song ->
+                            viewModel.handleIntent(PlaylistDetailIntent.SongClick(song))
                         }
-                    )
-                }
-
-                if (uiState.songs.isEmpty()) {
-                    item {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(32.dp),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Text(
-                                text = "播放列表为空",
-                                style = MaterialTheme.typography.bodyLarge,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
+                    },
+                    onShuffle = {
+                        uiState.songs.randomOrNull()?.let { song ->
+                            viewModel.handleIntent(PlaylistDetailIntent.SongClick(song))
                         }
                     }
-                } else {
-                    itemsIndexed(uiState.songs) { index, song ->
-                        SongItemWithMenu(
-                            song = song,
-                            showDivider = index < uiState.songs.size - 1,
-                            subtitle = formatDuration(song.duration),
-                            onRemoveSong = { songId ->
-                                viewModel.handleIntent(PlaylistDetailIntent.RemoveSong(songId))
-                            }
+                )
+            }
+
+            if (uiState.songs.isEmpty()) {
+                item {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(DesignTokens.Spacing.xl),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = "播放列表为空",
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
                 }
+            } else {
+                itemsIndexed(uiState.songs) { index, song ->
+                    SongItemWithMenu(
+                        song = song,
+                        showDivider = index < uiState.songs.size - 1,
+                        subtitle = formatDuration(song.duration),
+                        onRemoveSong = { songId ->
+                            viewModel.handleIntent(PlaylistDetailIntent.RemoveSong(songId))
+                        }
+                    )
+                }
+            }
+
+            item {
+                Spacer(modifier = Modifier.height(bottomPadding))
             }
         }
     }
@@ -148,13 +138,13 @@ private fun PlaylistHeader(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(16.dp),
+            .padding(DesignTokens.Spacing.md),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Box(
             modifier = Modifier
-                .size(200.dp)
-                .clip(RoundedCornerShape(12.dp)),
+                .size(DesignTokens.Card.mediaCardWidth)
+                .clip(RoundedCornerShape(DesignTokens.CornerRadius.large)),
             contentAlignment = Alignment.Center
         ) {
             Box(
@@ -172,25 +162,25 @@ private fun PlaylistHeader(
             }
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(DesignTokens.Spacing.md))
 
         Text(
             text = playlist?.name ?: "未知播放列表",
-            style = MaterialTheme.typography.headlineSmall,
+            style = MaterialTheme.typography.headlineLarge,
             color = MaterialTheme.colorScheme.onBackground,
             maxLines = 2,
             overflow = TextOverflow.Ellipsis
         )
 
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(DesignTokens.Spacing.sm))
 
         Text(
             text = "$songCount 首歌曲",
-            style = MaterialTheme.typography.bodyMedium,
+            style = MaterialTheme.typography.bodyLarge,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(DesignTokens.Spacing.md))
     }
 }
 

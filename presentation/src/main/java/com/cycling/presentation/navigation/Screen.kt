@@ -3,63 +3,82 @@ package com.cycling.presentation.navigation
 import kotlinx.serialization.Serializable
 
 sealed interface Screen {
+
     @Serializable
     data object Home : Screen
-    
-    @Serializable
-    data object Songs : Screen
-    
-    @Serializable
-    data object Albums : Screen
-    
-    @Serializable
-    data object Artists : Screen
-    
-    @Serializable
-    data object Playlists : Screen
-    
-    @Serializable
-    data class AlbumDetail(val albumId: Long) : Screen
-    
-    @Serializable
-    data class ArtistDetail(val artistId: Long) : Screen
-    
-    @Serializable
-    data class PlaylistDetail(val playlistId: Long) : Screen
-    
-    @Serializable
-    data object Settings : Screen
-    
-    @Serializable
-    data object ExcludeFolders : Screen
-    
-    @Serializable
-    data object Scan : Screen
-
-    @Serializable
-    data object Player : Screen
-
-    @Serializable
-    data object ApiKeyConfig : Screen
-
-    @Serializable
-    data object Favorites : Screen
-
-    @Serializable
-    data object RecentlyPlayed : Screen
-
-    @Serializable
-    data object MostPlayed : Screen
 
     @Serializable
     data object Search : Screen
 
     @Serializable
-    data object LibraryStats : Screen
+    data class SongDetail(val songId: Long) : Screen
+
+    @Serializable
+    data object Player : Screen
 
     @Serializable
     data object Lyrics : Screen
 
     @Serializable
-    data class SongDetail(val songId: Long) : Screen
+    data class TagEditor(val songId: Long) : Screen
+
+    @Serializable
+    data class AiInfo(val type: String, val name: String, val artist: String = "") : Screen
+}
+
+sealed interface LibraryDestination : Screen {
+    @Serializable
+    data object Songs : LibraryDestination
+
+    @Serializable
+    data object Albums : LibraryDestination
+
+    @Serializable
+    data object Artists : LibraryDestination
+
+    @Serializable
+    data object Playlists : LibraryDestination
+
+    @Serializable
+    data object Favorites : LibraryDestination
+
+    @Serializable
+    data object RecentlyPlayed : LibraryDestination
+
+    @Serializable
+    data object MostPlayed : LibraryDestination
+
+    @Serializable
+    data class AlbumDetail(val albumId: Long) : LibraryDestination
+
+    @Serializable
+    data class ArtistDetail(val artistId: Long) : LibraryDestination
+
+    @Serializable
+    data class PlaylistDetail(val playlistId: Long) : LibraryDestination
+}
+
+sealed interface SettingsDestination : Screen {
+    @Serializable
+    data object Main : SettingsDestination
+
+    @Serializable
+    data object ExcludeFolders : SettingsDestination
+
+    @Serializable
+    data object Scan : SettingsDestination
+
+    @Serializable
+    data object ApiKeyConfig : SettingsDestination
+
+    @Serializable
+    data object LibraryStats : SettingsDestination
+}
+
+sealed interface NavGraph : Screen {
+    @Serializable
+    data object Library : NavGraph
+
+    @Serializable
+    data object Settings : NavGraph
 }

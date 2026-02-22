@@ -1,8 +1,7 @@
 package com.cycling.presentation.components
 
-import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.spring
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -36,11 +35,14 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.text.intl.Locale
+import androidx.compose.ui.text.toUpperCase
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import com.cycling.presentation.theme.DesignTokens
 import com.cycling.presentation.theme.SonicColors
 import com.cycling.presentation.theme.SonicTheme
 
@@ -57,22 +59,21 @@ fun IOSListItem(
 ) {
     val interactionSource = remember { MutableInteractionSource() }
     val isPressed by interactionSource.collectIsPressedAsState()
-    val scale by animateFloatAsState(
-        targetValue = if (isPressed) 0.98f else 1f,
-        animationSpec = spring(dampingRatio = 0.8f, stiffness = Spring.StiffnessMedium),
-        label = "scale"
+    val backgroundColor by animateColorAsState(
+        targetValue = if (isPressed) MaterialTheme.colorScheme.onSurface.copy(alpha = 0.05f) else Color.Transparent,
+        animationSpec = tween(durationMillis = DesignTokens.Animation.animationDurationShort),
+        label = "backgroundColor"
     )
 
     Column(
         modifier = modifier
             .fillMaxWidth()
-            .scale(scale)
             .clickable(
                 interactionSource = interactionSource,
                 indication = null,
                 onClick = onClick
             )
-            .background(if (isPressed) MaterialTheme.colorScheme.onSurface.copy(alpha = 0.05f) else Color.Transparent)
+            .background(backgroundColor)
     ) {
         Row(
             modifier = Modifier
@@ -82,8 +83,8 @@ fun IOSListItem(
         ) {
             Box(
                 modifier = Modifier
-                    .size(32.dp)
-                    .clip(RoundedCornerShape(8.dp))
+                    .size(DesignTokens.ListItem.iconSize)
+                    .clip(RoundedCornerShape(DesignTokens.ListItem.iconCornerSize))
                     .background(iconBackgroundColor),
                 contentAlignment = Alignment.Center
             ) {
@@ -120,7 +121,7 @@ fun IOSListItem(
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(start = 62.dp)
+                    .padding(start = DesignTokens.ListItem.dividerIndent)
                     .height(0.5.dp)
                     .background(MaterialTheme.colorScheme.outline)
             )
@@ -139,22 +140,21 @@ fun IOSListItem(
 ) {
     val interactionSource = remember { MutableInteractionSource() }
     val isPressed by interactionSource.collectIsPressedAsState()
-    val scale by animateFloatAsState(
-        targetValue = if (isPressed) 0.98f else 1f,
-        animationSpec = spring(dampingRatio = 0.8f, stiffness = Spring.StiffnessMedium),
-        label = "scale"
+    val backgroundColor by animateColorAsState(
+        targetValue = if (isPressed) MaterialTheme.colorScheme.onSurface.copy(alpha = 0.05f) else Color.Transparent,
+        animationSpec = tween(durationMillis = DesignTokens.Animation.animationDurationShort),
+        label = "backgroundColor"
     )
 
     Column(
         modifier = modifier
             .fillMaxWidth()
-            .scale(scale)
             .clickable(
                 interactionSource = interactionSource,
                 indication = null,
                 onClick = onClick
             )
-            .background(if (isPressed) MaterialTheme.colorScheme.onSurface.copy(alpha = 0.05f) else Color.Transparent)
+            .background(backgroundColor)
     ) {
         Row(
             modifier = Modifier
@@ -176,12 +176,27 @@ fun IOSListItem(
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(start = if (leading != null) 62.dp else 16.dp)
+                    .padding(start = if (leading != null) DesignTokens.ListItem.dividerIndent else 16.dp)
                     .height(0.5.dp)
                     .background(MaterialTheme.colorScheme.outline)
             )
         }
     }
+}
+
+@Composable
+fun IOSListSectionHeader(
+    title: String,
+    modifier: Modifier = Modifier
+) {
+    Text(
+        text = title.toUpperCase(Locale.current),
+        style = MaterialTheme.typography.labelMedium.copy(fontSize = 13.sp),
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(start = 16.dp, bottom = 8.dp)
+    )
 }
 
 @Composable
@@ -289,8 +304,8 @@ private fun IOSListItemWithSwitchPreview() {
                     leading = {
                         Box(
                             modifier = Modifier
-                                .size(32.dp)
-                                .clip(RoundedCornerShape(8.dp))
+                                .size(DesignTokens.ListItem.iconSize)
+                                .clip(RoundedCornerShape(DesignTokens.ListItem.iconCornerSize))
                                 .background(SonicColors.Indigo),
                             contentAlignment = Alignment.Center
                         ) {
@@ -312,6 +327,37 @@ private fun IOSListItemWithSwitchPreview() {
                             )
                         )
                     }
+                )
+            }
+        }
+    }
+}
+
+@Preview(showBackground = true, name = "Light")
+@Preview(showBackground = true, name = "Dark", uiMode = 32)
+@Composable
+private fun IOSListSectionHeaderPreview() {
+    SonicTheme {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(MaterialTheme.colorScheme.background)
+        ) {
+            IOSListSectionHeader(title = "媒体库")
+            IOSInsetGrouped {
+                IOSListItem(
+                    title = "歌曲",
+                    icon = Icons.Default.MusicNote,
+                    iconBackgroundColor = SonicColors.Red,
+                    onClick = {},
+                    showDivider = true
+                )
+                IOSListItem(
+                    title = "专辑",
+                    icon = Icons.Default.Album,
+                    iconBackgroundColor = SonicColors.Teal,
+                    onClick = {},
+                    showDivider = false
                 )
             }
         }

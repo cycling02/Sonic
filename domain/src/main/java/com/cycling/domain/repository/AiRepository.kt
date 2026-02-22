@@ -2,6 +2,7 @@ package com.cycling.domain.repository
 
 import com.cycling.domain.model.AiInfo
 import com.cycling.domain.model.AiInfoType
+import com.cycling.domain.model.Song
 
 interface AiRepository {
     suspend fun getApiKey(): String?
@@ -21,4 +22,9 @@ interface AiRepository {
     suspend fun getCachedArtistInfo(artistName: String): AiInfo?
     
     suspend fun getCachedAlbumInfo(albumTitle: String, artist: String): AiInfo?
+    
+    suspend fun generatePlaylistByTheme(
+        theme: String,
+        songs: List<Song>
+    ): Result<List<Long>>
 }

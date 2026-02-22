@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.PlayArrow
@@ -33,6 +34,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.cycling.presentation.theme.DesignTokens
 import com.cycling.presentation.theme.SonicColors
 import com.cycling.presentation.theme.SonicTheme
 
@@ -47,7 +49,7 @@ fun IOSFilledButton(
     val interactionSource = remember { MutableInteractionSource() }
     val isPressed by interactionSource.collectIsPressedAsState()
     val scale by animateFloatAsState(
-        targetValue = if (isPressed) 0.96f else 1f,
+        targetValue = if (isPressed) DesignTokens.Animation.buttonPressScale else 1f,
         animationSpec = spring(dampingRatio = 0.7f, stiffness = Spring.StiffnessMedium),
         label = "scale"
     )
@@ -55,7 +57,7 @@ fun IOSFilledButton(
     Box(
         modifier = modifier
             .scale(scale)
-            .clip(RoundedCornerShape(12.dp))
+            .clip(RoundedCornerShape(DesignTokens.CornerRadius.medium))
             .background(backgroundColor)
             .clickable(
                 interactionSource = interactionSource,
@@ -96,16 +98,18 @@ fun IOSTextButton(
 ) {
     val interactionSource = remember { MutableInteractionSource() }
     val isPressed by interactionSource.collectIsPressedAsState()
-    val scale by animateFloatAsState(
-        targetValue = if (isPressed) 0.96f else 1f,
-        animationSpec = spring(dampingRatio = 0.7f, stiffness = Spring.StiffnessMedium),
-        label = "scale"
+    val alpha by animateFloatAsState(
+        targetValue = if (isPressed) 0.6f else 1f,
+        animationSpec = spring(
+            dampingRatio = DesignTokens.Animation.springDampingRatio,
+            stiffness = DesignTokens.Animation.springStiffness
+        ),
+        label = "alpha"
     )
 
     Box(
         modifier = modifier
-            .scale(scale)
-            .clip(RoundedCornerShape(8.dp))
+            .clip(RoundedCornerShape(DesignTokens.CornerRadius.small))
             .clickable(
                 interactionSource = interactionSource,
                 indication = null,
@@ -117,7 +121,7 @@ fun IOSTextButton(
         Text(
             text = text,
             style = MaterialTheme.typography.bodyLarge,
-            color = color
+            color = color.copy(alpha = alpha)
         )
     }
 }
@@ -132,19 +136,36 @@ fun IOSSegmentedButton(
     val interactionSource = remember { MutableInteractionSource() }
     val isPressed by interactionSource.collectIsPressedAsState()
     val scale by animateFloatAsState(
-        targetValue = if (isPressed) 0.96f else 1f,
-        animationSpec = spring(dampingRatio = 0.7f, stiffness = Spring.StiffnessMedium),
+        targetValue = if (isPressed) DesignTokens.Animation.buttonPressScale else 1f,
+        animationSpec = spring(
+            dampingRatio = DesignTokens.Animation.springDampingRatio,
+            stiffness = DesignTokens.Animation.springStiffness
+        ),
         label = "scale"
     )
 
-    val backgroundColor = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant
+    val backgroundColor by animateFloatAsState(
+        targetValue = if (selected) 1f else 0f,
+        animationSpec = spring(
+            dampingRatio = DesignTokens.Animation.springDampingRatio,
+            stiffness = DesignTokens.Animation.springStiffness
+        ),
+        label = "backgroundColor"
+    )
+
+    val animatedBackgroundColor = if (selected) {
+        MaterialTheme.colorScheme.primary
+    } else {
+        MaterialTheme.colorScheme.surfaceVariant
+    }
+
     val textColor = if (selected) Color.White else MaterialTheme.colorScheme.onSurface
 
     Box(
         modifier = modifier
             .scale(scale)
-            .clip(RoundedCornerShape(8.dp))
-            .background(backgroundColor)
+            .clip(RoundedCornerShape(DesignTokens.CornerRadius.small))
+            .background(animatedBackgroundColor)
             .clickable(
                 interactionSource = interactionSource,
                 indication = null,
@@ -157,6 +178,46 @@ fun IOSSegmentedButton(
             text = text,
             style = if (selected) MaterialTheme.typography.labelLarge else MaterialTheme.typography.bodyMedium,
             color = textColor
+        )
+    }
+}
+
+@Composable
+fun IOSIconButton(
+    icon: ImageVector,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    contentDescription: String? = null,
+    tint: Color = MaterialTheme.colorScheme.onBackground
+) {
+    val interactionSource = remember { MutableInteractionSource() }
+    val isPressed by interactionSource.collectIsPressedAsState()
+    val scale by animateFloatAsState(
+        targetValue = if (isPressed) DesignTokens.Animation.buttonPressScale else 1f,
+        animationSpec = spring(
+            dampingRatio = DesignTokens.Animation.springDampingRatio,
+            stiffness = DesignTokens.Animation.springStiffness
+        ),
+        label = "scale"
+    )
+
+    Box(
+        modifier = modifier
+            .size(44.dp)
+            .scale(scale)
+            .clip(CircleShape)
+            .clickable(
+                interactionSource = interactionSource,
+                indication = null,
+                onClick = onClick
+            ),
+        contentAlignment = Alignment.Center
+    ) {
+        Icon(
+            imageVector = icon,
+            contentDescription = contentDescription,
+            modifier = Modifier.size(24.dp),
+            tint = tint
         )
     }
 }
@@ -222,6 +283,33 @@ private fun IOSSegmentedButtonPreview() {
 @Preview(showBackground = true, name = "Light")
 @Preview(showBackground = true, name = "Dark", uiMode = 32)
 @Composable
+private fun IOSIconButtonPreview() {
+    SonicTheme {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp)
+                .background(MaterialTheme.colorScheme.background),
+            horizontalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            IOSIconButton(
+                icon = Icons.Default.PlayArrow,
+                contentDescription = "播放",
+                onClick = {}
+            )
+            IOSIconButton(
+                icon = Icons.Default.PlayArrow,
+                contentDescription = "播放",
+                tint = MaterialTheme.colorScheme.primary,
+                onClick = {}
+            )
+        }
+    }
+}
+
+@Preview(showBackground = true, name = "Light")
+@Preview(showBackground = true, name = "Dark", uiMode = 32)
+@Composable
 private fun AllButtonsPreview() {
     SonicTheme {
         Column(
@@ -238,6 +326,11 @@ private fun AllButtonsPreview() {
                 IOSSegmentedButton(text = "选中", selected = true, onClick = {})
                 IOSSegmentedButton(text = "未选中", selected = false, onClick = {})
             }
+            IOSIconButton(
+                icon = Icons.Default.PlayArrow,
+                contentDescription = "播放",
+                onClick = {}
+            )
         }
     }
 }

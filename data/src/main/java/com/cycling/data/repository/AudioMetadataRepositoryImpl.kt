@@ -1,7 +1,9 @@
 package com.cycling.data.repository
 
 import com.cycling.data.local.metadata.AudioMetadataHelper
+import com.cycling.data.local.metadata.TagUpdate as DataTagUpdate
 import com.cycling.domain.model.AudioMetadata
+import com.cycling.domain.model.TagUpdate
 import com.cycling.domain.repository.AudioMetadataRepository
 import timber.log.Timber
 import javax.inject.Inject
@@ -32,5 +34,29 @@ class AudioMetadataRepositoryImpl @Inject constructor(
             comment = metadata.comment,
             copyright = metadata.copyright
         )
+    }
+
+    override suspend fun updateAudioTags(filePath: String, tagUpdate: TagUpdate): Result<Boolean> {
+        Timber.d("updateAudioTags: filePath=$filePath, tagUpdate=$tagUpdate")
+        return try {
+            val dataTagUpdate = DataTagUpdate(
+                title = tagUpdate.title,
+                artist = tagUpdate.artist,
+                album = tagUpdate.album,
+                year = tagUpdate.year,
+                genre = tagUpdate.genre,
+                composer = tagUpdate.composer
+            )
+            val success = audioMetadataHelper.updateMp3Tags(filePath, dataTagUpdate)
+            if (success) {
+                Timber.i("updateAudioTags: successfully updated tags for filePath=$filePath")
+            } else {
+                Timber.w("updateAudioTags: failed to update tags for filePath=$filePath")
+            }
+            Result.success(success)
+        } catch (e: Exception) {
+            Timber.e(e, "updateAudioTags: exception while updating tags for filePath=$filePath")
+            Result.failure(e)
+        }
     }
 }

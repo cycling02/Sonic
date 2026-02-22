@@ -1,7 +1,10 @@
 package com.cycling.data.player
 
 import android.content.Context
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.net.Uri
+import android.provider.MediaStore
 import androidx.annotation.OptIn
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
@@ -25,8 +28,10 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.guava.await
 import kotlinx.coroutines.launch
 import timber.log.Timber
+import java.io.ByteArrayOutputStream
 import javax.inject.Inject
 import javax.inject.Singleton
+import androidx.core.net.toUri
 
 @Singleton
 @OptIn(UnstableApi::class)
@@ -156,13 +161,50 @@ class PlayerManager @Inject constructor(
             .setAlbumTitle(song.album)
 
         song.albumArt?.let { artworkUri ->
-            metadataBuilder.setArtworkUri(Uri.parse(artworkUri))
+            try {
+                val bitmap = loadAlbumArtBitmap(artworkUri)
+                if (bitmap != null) {
+                    val artworkData = bitmapToByteArray(bitmap)
+                    metadataBuilder.setArtworkData(artworkData, MediaMetadata.PICTURE_TYPE_FRONT_COVER)
+                    Timber.d("createMediaItem: embedded artwork data for ${song.title}, size=${artworkData.size}")
+                } else {
+                    Timber.d("createMediaItem: failed to load bitmap for ${song.title}")
+                }
+            } catch (e: Exception) {
+                Timber.e(e, "createMediaItem: error loading artwork for ${song.title}")
+            }
         }
 
         return MediaItem.Builder()
             .setUri(song.path)
             .setMediaMetadata(metadataBuilder.build())
             .build()
+    }
+
+    private fun loadAlbumArtBitmap(uriString: String): Bitmap? {
+        return try {
+            val uri = uriString.toUri()
+            context.contentResolver.openInputStream(uri)?.use { inputStream ->
+                BitmapFactory.decodeStream(inputStream)
+            }
+        } catch (e: Exception) {
+            Timber.e(e, "loadAlbumArtBitmap: failed to load from $uriString")
+            null
+        }
+    }
+
+    private fun bitmapToByteArray(bitmap: Bitmap): ByteArray {
+        val maxSize = 512
+        val scaledBitmap = if (bitmap.width > maxSize || bitmap.height > maxSize) {
+            val scale = maxSize.toFloat() / maxOf(bitmap.width, bitmap.height)
+            Bitmap.createScaledBitmap(bitmap, (bitmap.width * scale).toInt(), (bitmap.height * scale).toInt(), true)
+        } else {
+            bitmap
+        }
+        
+        val outputStream = ByteArrayOutputStream()
+        scaledBitmap.compress(Bitmap.CompressFormat.JPEG, 85, outputStream)
+        return outputStream.toByteArray()
     }
 
     fun playSong(song: Song, queue: List<Song> = emptyList()) {

@@ -1,17 +1,15 @@
 package com.cycling.presentation.navigation
 
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.compose.navigation
+import androidx.navigation.toRoute
+import com.cycling.presentation.ai.AiInfoScreen
 import com.cycling.presentation.albumdetail.AlbumDetailScreen
 import com.cycling.presentation.albums.AlbumsScreen
 import com.cycling.presentation.artistdetail.ArtistDetailScreen
@@ -31,8 +29,9 @@ import com.cycling.presentation.scan.ScanScreen
 import com.cycling.presentation.search.SearchScreen
 import com.cycling.presentation.settings.ApiKeyConfigScreen
 import com.cycling.presentation.settings.SettingsScreen
-import com.cycling.presentation.songs.SongsScreen
 import com.cycling.presentation.songdetail.SongDetailScreen
+import com.cycling.presentation.songs.SongsScreen
+import com.cycling.presentation.tageditor.TagEditorScreen
 
 @Composable
 fun AppNavGraph(
@@ -42,153 +41,57 @@ fun AppNavGraph(
 ) {
     NavHost(
         navController = navController,
-        startDestination = Screen.Home
+        startDestination = Screen.Home,
+        enterTransition = { IOSNavAnimations.iosPushEnter() },
+        exitTransition = { IOSNavAnimations.iosPushExit() },
+        popEnterTransition = { IOSNavAnimations.iosPopEnter() },
+        popExitTransition = { IOSNavAnimations.iosPopExit() }
     ) {
         composable<Screen.Home> {
             HomeScreen(
-                onNavigateToSongs = { navController.navigate(Screen.Songs) },
-                onNavigateToAlbums = { navController.navigate(Screen.Albums) },
-                onNavigateToArtists = { navController.navigate(Screen.Artists) },
-                onNavigateToPlaylists = { navController.navigate(Screen.Playlists) },
-                onNavigateToSettings = { navController.navigate(Screen.Settings) },
-                onNavigateToScan = { navController.navigate(Screen.Scan) },
-                onNavigateToAlbumDetail = { albumId -> navController.navigate(Screen.AlbumDetail(albumId)) },
-                onNavigateToArtistDetail = { artistId -> navController.navigate(Screen.ArtistDetail(artistId)) },
+                onNavigateToSongs = { navController.navigate(LibraryDestination.Songs) },
+                onNavigateToAlbums = { navController.navigate(LibraryDestination.Albums) },
+                onNavigateToArtists = { navController.navigate(LibraryDestination.Artists) },
+                onNavigateToPlaylists = { navController.navigate(LibraryDestination.Playlists) },
+                onNavigateToSettings = { navController.navigate(SettingsDestination.Main) },
+                onNavigateToScan = { navController.navigate(SettingsDestination.Scan) },
+                onNavigateToAlbumDetail = { albumId -> navController.navigate(LibraryDestination.AlbumDetail(albumId)) },
+                onNavigateToArtistDetail = { artistId -> navController.navigate(LibraryDestination.ArtistDetail(artistId)) },
                 onNavigateToPlayer = { songId -> navController.navigate(Screen.Player) },
-                onNavigateToFavorites = { navController.navigate(Screen.Favorites) },
-                onNavigateToRecentlyPlayed = { navController.navigate(Screen.RecentlyPlayed) },
-                onNavigateToMostPlayed = { navController.navigate(Screen.MostPlayed) },
+                onNavigateToFavorites = { navController.navigate(LibraryDestination.Favorites) },
+                onNavigateToRecentlyPlayed = { navController.navigate(LibraryDestination.RecentlyPlayed) },
+                onNavigateToMostPlayed = { navController.navigate(LibraryDestination.MostPlayed) },
                 onNavigateToSearch = { navController.navigate(Screen.Search) }
             )
         }
 
-        composable<Screen.Songs> {
-            SongsScreen(
+        composable<Screen.Search>(
+            enterTransition = { IOSNavAnimations.iosModalEnter() },
+            exitTransition = { IOSNavAnimations.iosModalExit() },
+            popEnterTransition = { IOSNavAnimations.iosFadeEnter() },
+            popExitTransition = { IOSNavAnimations.iosModalExit() }
+        ) {
+            SearchScreen(
                 onNavigateBack = { navController.popBackStack() },
-                onNavigateToPlayer = {  },
-                onNavigateToSongDetail = { songId -> navController.navigate(Screen.SongDetail(songId)) },
+                onNavigateToPlayer = { songId -> },
+                onNavigateToAlbumDetail = { albumId -> navController.navigate(LibraryDestination.AlbumDetail(albumId)) },
+                onNavigateToArtistDetail = { artistId -> navController.navigate(LibraryDestination.ArtistDetail(artistId)) },
                 playerViewModel = playerViewModel
             )
         }
 
-        composable<Screen.Albums> {
-            AlbumsScreen(
-                onNavigateBack = { navController.popBackStack() },
-                onNavigateToAlbumDetail = { albumId -> navController.navigate(Screen.AlbumDetail(albumId)) }
-            )
-        }
-
-        composable<Screen.Artists> {
-            ArtistsScreen(
-                onNavigateBack = { navController.popBackStack() },
-                onNavigateToArtistDetail = { artistId -> navController.navigate(Screen.ArtistDetail(artistId)) }
-            )
-        }
-
-        composable<Screen.Playlists> {
-            PlaylistsScreen(
-                onNavigateBack = { navController.popBackStack() },
-                onNavigateToPlaylistDetail = { playlistId -> navController.navigate(Screen.PlaylistDetail(playlistId)) }
-            )
-        }
-
-        composable<Screen.AlbumDetail> {
-            AlbumDetailScreen(
-                onNavigateBack = { navController.popBackStack() },
-                onNavigateToPlayer = { songId -> },
-                onNavigateToApiKeyConfig = { navController.navigate(Screen.ApiKeyConfig) }
-            )
-        }
-
-        composable<Screen.ArtistDetail> {
-            ArtistDetailScreen(
-                onNavigateBack = { navController.popBackStack() },
-                onNavigateToPlayer = { songId -> },
-                onNavigateToApiKeyConfig = { navController.navigate(Screen.ApiKeyConfig) }
-            )
-        }
-
-        composable<Screen.PlaylistDetail> {
-            PlaylistDetailScreen(
-                onNavigateBack = { navController.popBackStack() },
-                onNavigateToPlayer = { songId -> }
-            )
-        }
-
-        composable<Screen.Settings> {
-            SettingsScreen(
-                onNavigateBack = { navController.popBackStack() },
-                onNavigateToScan = { navController.navigate(Screen.Scan) },
-                onNavigateToExcludeFolders = { navController.navigate(Screen.ExcludeFolders) },
-                onNavigateToApiKeyConfig = { navController.navigate(Screen.ApiKeyConfig) },
-                onNavigateToLibraryStats = { navController.navigate(Screen.LibraryStats) }
-            )
-        }
-
-        composable<Screen.ExcludeFolders> {
-            ExcludeFoldersScreen(
-                onNavigateBack = { navController.popBackStack() },
-                onShowToast = onShowToast
-            )
-        }
-
-        composable<Screen.Scan> {
-            ScanScreen(
-                onNavigateBack = { navController.popBackStack() },
-                onShowToast = onShowToast
-            )
-        }
-
-        composable<Screen.Player> {
+        composable<Screen.Player>(
+            enterTransition = { IOSNavAnimations.iosSheetEnter() },
+            exitTransition = { IOSNavAnimations.iosSheetExit() },
+            popEnterTransition = { IOSNavAnimations.iosFadeEnter() },
+            popExitTransition = { IOSNavAnimations.iosSheetExit() }
+        ) {
             val uiState by playerViewModel.uiState.collectAsStateWithLifecycle()
             PlayerScreen(
                 uiState = uiState,
                 onIntent = playerViewModel::handleIntent,
                 onNavigateBack = { navController.popBackStack() },
                 onNavigateToLyrics = { navController.navigate(Screen.Lyrics) }
-            )
-        }
-
-        composable<Screen.ApiKeyConfig> {
-            ApiKeyConfigScreen(
-                onNavigateBack = { navController.popBackStack() }
-            )
-        }
-
-        composable<Screen.Favorites> {
-            FavoritesScreen(
-                onNavigateBack = { navController.popBackStack() },
-                onNavigateToPlayer = { songId -> }
-            )
-        }
-
-        composable<Screen.RecentlyPlayed> {
-            RecentlyPlayedScreen(
-                onNavigateBack = { navController.popBackStack() },
-                onNavigateToPlayer = { songId -> }
-            )
-        }
-
-        composable<Screen.MostPlayed> {
-            MostPlayedScreen(
-                onNavigateBack = { navController.popBackStack() },
-                onNavigateToPlayer = { songId -> }
-            )
-        }
-
-        composable<Screen.Search> {
-            SearchScreen(
-                onNavigateBack = { navController.popBackStack() },
-                onNavigateToPlayer = { songId -> },
-                onNavigateToAlbumDetail = { albumId -> navController.navigate(Screen.AlbumDetail(albumId)) },
-                onNavigateToArtistDetail = { artistId -> navController.navigate(Screen.ArtistDetail(artistId)) },
-                playerViewModel = playerViewModel
-            )
-        }
-
-        composable<Screen.LibraryStats> {
-            LibraryStatsScreen(
-                onNavigateBack = { navController.popBackStack() }
             )
         }
 
@@ -201,25 +104,166 @@ fun AppNavGraph(
         composable<Screen.SongDetail> {
             SongDetailScreen(
                 onNavigateBack = { navController.popBackStack() },
+                onNavigateToPlayer = { navController.navigate(Screen.Player) },
+                onNavigateToTagEditor = { songId -> navController.navigate(Screen.TagEditor(songId)) }
+            )
+        }
+
+        composable<Screen.TagEditor> {
+            TagEditorScreen(
+                onNavigateBack = { navController.popBackStack() }
+            )
+        }
+
+        composable<Screen.AiInfo> {
+            val route = it.toRoute<Screen.AiInfo>()
+            AiInfoScreen(
+                type = route.type,
+                name = route.name,
+                artist = route.artist,
+                onNavigateBack = { navController.popBackStack() },
+                onNavigateToApiKeyConfig = { navController.navigate(SettingsDestination.ApiKeyConfig) }
+            )
+        }
+
+        libraryNavGraph(
+            navController = navController,
+            playerViewModel = playerViewModel
+        )
+
+        settingsNavGraph(
+            navController = navController,
+            onShowToast = onShowToast
+        )
+    }
+}
+
+private fun NavGraphBuilder.libraryNavGraph(
+    navController: NavHostController,
+    playerViewModel: PlayerViewModel
+) {
+    navigation<NavGraph.Library>(
+        startDestination = LibraryDestination.Songs
+    ) {
+        composable<LibraryDestination.Songs> {
+            SongsScreen(
+                onNavigateBack = { navController.popBackStack() },
+                onNavigateToPlayer = { },
+                onNavigateToSongDetail = { songId -> navController.navigate(Screen.SongDetail(songId)) },
+                playerViewModel = playerViewModel
+            )
+        }
+
+        composable<LibraryDestination.Albums> {
+            AlbumsScreen(
+                onNavigateBack = { navController.popBackStack() },
+                onNavigateToAlbumDetail = { albumId -> navController.navigate(LibraryDestination.AlbumDetail(albumId)) }
+            )
+        }
+
+        composable<LibraryDestination.Artists> {
+            ArtistsScreen(
+                onNavigateBack = { navController.popBackStack() },
+                onNavigateToArtistDetail = { artistId -> navController.navigate(LibraryDestination.ArtistDetail(artistId)) }
+            )
+        }
+
+        composable<LibraryDestination.Playlists> {
+            PlaylistsScreen(
+                onNavigateBack = { navController.popBackStack() },
+                onNavigateToPlaylistDetail = { playlistId -> navController.navigate(LibraryDestination.PlaylistDetail(playlistId)) }
+            )
+        }
+
+        composable<LibraryDestination.Favorites> {
+            FavoritesScreen(
+                onNavigateBack = { navController.popBackStack() },
+                onNavigateToPlayer = { songId -> }
+            )
+        }
+
+        composable<LibraryDestination.RecentlyPlayed> {
+            RecentlyPlayedScreen(
+                onNavigateBack = { navController.popBackStack() },
+                onNavigateToPlayer = { songId -> }
+            )
+        }
+
+        composable<LibraryDestination.MostPlayed> {
+            MostPlayedScreen(
+                onNavigateBack = { navController.popBackStack() },
+                onNavigateToPlayer = { songId -> }
+            )
+        }
+
+        composable<LibraryDestination.AlbumDetail> {
+            AlbumDetailScreen(
+                onNavigateBack = { navController.popBackStack() },
+                onNavigateToPlayer = { songId -> },
+                onNavigateToApiKeyConfig = { navController.navigate(SettingsDestination.ApiKeyConfig) },
+                onNavigateToAiInfo = { type, name, artist -> navController.navigate(Screen.AiInfo(type, name, artist)) }
+            )
+        }
+
+        composable<LibraryDestination.ArtistDetail> {
+            ArtistDetailScreen(
+                onNavigateBack = { navController.popBackStack() },
+                onNavigateToPlayer = { songId -> },
+                onNavigateToApiKeyConfig = { navController.navigate(SettingsDestination.ApiKeyConfig) },
+                onNavigateToAiInfo = { type, name, artist -> navController.navigate(Screen.AiInfo(type, name, artist)) }
+            )
+        }
+
+        composable<LibraryDestination.PlaylistDetail> {
+            PlaylistDetailScreen(
+                onNavigateBack = { navController.popBackStack() },
                 onNavigateToPlayer = { songId -> }
             )
         }
     }
 }
 
-@Composable
-private fun PlaceholderScreen(
-    title: String,
-    onNavigateBack: () -> Unit
+private fun NavGraphBuilder.settingsNavGraph(
+    navController: NavHostController,
+    onShowToast: (String) -> Unit
 ) {
-    Box(
-        modifier = Modifier.fillMaxSize()
+    navigation<NavGraph.Settings>(
+        startDestination = SettingsDestination.Main
     ) {
-        TextButton(
-            onClick = onNavigateBack,
-            modifier = Modifier.align(Alignment.Center)
-        ) {
-            Text("返回 - $title 页面开发中")
+        composable<SettingsDestination.Main> {
+            SettingsScreen(
+                onNavigateBack = { navController.popBackStack() },
+                onNavigateToScan = { navController.navigate(SettingsDestination.Scan) },
+                onNavigateToExcludeFolders = { navController.navigate(SettingsDestination.ExcludeFolders) },
+                onNavigateToApiKeyConfig = { navController.navigate(SettingsDestination.ApiKeyConfig) },
+                onNavigateToLibraryStats = { navController.navigate(SettingsDestination.LibraryStats) }
+            )
+        }
+
+        composable<SettingsDestination.ExcludeFolders> {
+            ExcludeFoldersScreen(
+                onNavigateBack = { navController.popBackStack() },
+                onShowToast = onShowToast
+            )
+        }
+
+        composable<SettingsDestination.Scan> {
+            ScanScreen(
+                onNavigateBack = { navController.popBackStack() },
+                onShowToast = onShowToast
+            )
+        }
+
+        composable<SettingsDestination.ApiKeyConfig> {
+            ApiKeyConfigScreen(
+                onNavigateBack = { navController.popBackStack() }
+            )
+        }
+
+        composable<SettingsDestination.LibraryStats> {
+            LibraryStatsScreen(
+                onNavigateBack = { navController.popBackStack() }
+            )
         }
     }
 }

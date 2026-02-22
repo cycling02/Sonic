@@ -2,13 +2,11 @@ package com.cycling.presentation.home
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.QueueMusic
 import androidx.compose.material.icons.automirrored.filled.TrendingUp
@@ -20,12 +18,9 @@ import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -35,13 +30,13 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.cycling.presentation.components.IOSScreenWithLargeTitle
 import com.cycling.presentation.components.IOSInsetGrouped
-import com.cycling.presentation.components.IOSLargeTitleTopAppBar
 import com.cycling.presentation.components.IOSListItem
 import com.cycling.presentation.player.MiniPlayer
+import com.cycling.presentation.theme.DesignTokens
 import com.cycling.presentation.theme.SonicColors
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
     viewModel: HomeViewModel = hiltViewModel(),
@@ -64,7 +59,7 @@ fun HomeScreen(
     val playerState by viewModel.playerState.collectAsStateWithLifecycle(
         initialValue = com.cycling.domain.model.PlayerState()
     )
-    val scrollState = rememberScrollState()
+    val scrollState = rememberLazyListState()
 
     LaunchedEffect(Unit) {
         viewModel.uiEffect.collect { effect ->
@@ -87,79 +82,68 @@ fun HomeScreen(
         }
     }
 
-    Scaffold(
-        topBar = {
-            IOSLargeTitleTopAppBar(
-                title = "音乐",
-                isLarge = scrollState.value < 10,
-                actions = {
-                    IconButton(onClick = { viewModel.handleIntent(HomeIntent.NavigateToSearch) }) {
-                        Icon(
-                            imageVector = Icons.Default.Search,
-                            contentDescription = "搜索",
-                            tint = MaterialTheme.colorScheme.primary
-                        )
-                    }
-                    IconButton(onClick = { viewModel.handleIntent(HomeIntent.NavigateToSettings) }) {
-                        Icon(
-                            imageVector = Icons.Default.Settings,
-                            contentDescription = "设置",
-                            tint = MaterialTheme.colorScheme.primary
-                        )
-                    }
-                }
-            )
-        },
-        containerColor = MaterialTheme.colorScheme.background
-    ) { paddingValues ->
-        if (uiState.isLoading) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(paddingValues),
-                contentAlignment = Alignment.Center
-            ) {
-                CircularProgressIndicator(
-                    color = MaterialTheme.colorScheme.primary
+    IOSScreenWithLargeTitle(
+        title = "音乐",
+        scrollState = scrollState,
+        actions = {
+            IconButton(onClick = { viewModel.handleIntent(HomeIntent.NavigateToSearch) }) {
+                Icon(
+                    imageVector = Icons.Default.Search,
+                    contentDescription = "搜索",
+                    tint = MaterialTheme.colorScheme.primary
                 )
             }
-        } else {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(paddingValues)
+            IconButton(onClick = { viewModel.handleIntent(HomeIntent.NavigateToSettings) }) {
+                Icon(
+                    imageVector = Icons.Default.Settings,
+                    contentDescription = "设置",
+                    tint = MaterialTheme.colorScheme.primary
+                )
+            }
+        },
+        showMiniPlayer = playerState.currentSong != null,
+        miniPlayer = {
+            MiniPlayer(
+                currentSong = playerState.currentSong,
+                isPlaying = playerState.isPlaying,
+                playbackPosition = playerState.playbackPosition,
+                duration = playerState.duration,
+                onPlayPause = { viewModel.handleIntent(HomeIntent.PlayPause) },
+                onClick = { viewModel.handleIntent(HomeIntent.MiniPlayerClick) }
+            )
+        },
+        isLoading = uiState.isLoading,
+        loadingContent = {
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
             ) {
-                Column(
-                    modifier = Modifier
-                        .weight(1f)
-                        .verticalScroll(scrollState)
-                ) {
-                    Spacer(modifier = Modifier.height(8.dp))
+                CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
+            }
+        }
+    ) {
+        LazyColumn(
+            state = scrollState,
+            verticalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.sectionSpacing)
+        ) {
+            item {
+                Spacer(modifier = Modifier.height(DesignTokens.Spacing.sm))
+            }
 
-                    QuickAccessSection(
-                        onSongsClick = { viewModel.handleIntent(HomeIntent.NavigateToSongs) },
-                        onAlbumsClick = { viewModel.handleIntent(HomeIntent.NavigateToAlbums) },
-                        onArtistsClick = { viewModel.handleIntent(HomeIntent.NavigateToArtists) },
-                        onPlaylistsClick = { viewModel.handleIntent(HomeIntent.NavigateToPlaylists) },
-                        onFavoritesClick = { viewModel.handleIntent(HomeIntent.NavigateToFavorites) },
-                        onRecentlyPlayedClick = { viewModel.handleIntent(HomeIntent.NavigateToRecentlyPlayed) },
-                        onMostPlayedClick = { viewModel.handleIntent(HomeIntent.NavigateToMostPlayed) }
-                    )
+            item {
+                QuickAccessSection(
+                    onSongsClick = { viewModel.handleIntent(HomeIntent.NavigateToSongs) },
+                    onAlbumsClick = { viewModel.handleIntent(HomeIntent.NavigateToAlbums) },
+                    onArtistsClick = { viewModel.handleIntent(HomeIntent.NavigateToArtists) },
+                    onPlaylistsClick = { viewModel.handleIntent(HomeIntent.NavigateToPlaylists) },
+                    onFavoritesClick = { viewModel.handleIntent(HomeIntent.NavigateToFavorites) },
+                    onRecentlyPlayedClick = { viewModel.handleIntent(HomeIntent.NavigateToRecentlyPlayed) },
+                    onMostPlayedClick = { viewModel.handleIntent(HomeIntent.NavigateToMostPlayed) }
+                )
+            }
 
-                    Spacer(modifier = Modifier.height(16.dp))
-                    Spacer(modifier = Modifier.height(bottomPadding))
-                }
-
-                if (playerState.currentSong != null) {
-                    MiniPlayer(
-                        currentSong = playerState.currentSong,
-                        isPlaying = playerState.isPlaying,
-                        playbackPosition = playerState.playbackPosition,
-                        duration = playerState.duration,
-                        onPlayPause = { viewModel.handleIntent(HomeIntent.PlayPause) },
-                        onClick = { viewModel.handleIntent(HomeIntent.MiniPlayerClick) }
-                    )
-                }
+            item {
+                Spacer(modifier = Modifier.height(bottomPadding))
             }
         }
     }
@@ -226,5 +210,4 @@ private fun QuickAccessSection(
             showDivider = false
         )
     }
-    Spacer(modifier = Modifier.height(24.dp))
 }

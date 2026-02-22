@@ -45,6 +45,7 @@ class SongDetailViewModel @Inject constructor(
             is SongDetailIntent.PlaySong -> playSong()
             is SongDetailIntent.AddToPlaylist -> addToPlaylist()
             is SongDetailIntent.CopyPath -> copyPath(intent.path)
+            is SongDetailIntent.EditTags -> editTags()
         }
     }
 
@@ -98,6 +99,13 @@ class SongDetailViewModel @Inject constructor(
     private fun copyPath(path: String) {
         viewModelScope.launch {
             _uiEffect.emit(SongDetailEffect.ShowCopiedMessage("路径已复制到剪贴板"))
+        }
+    }
+
+    private fun editTags() {
+        viewModelScope.launch {
+            val currentSong = _uiState.value.song ?: return@launch
+            _uiEffect.emit(SongDetailEffect.NavigateToTagEditor(currentSong.id))
         }
     }
 }

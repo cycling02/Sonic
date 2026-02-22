@@ -58,6 +58,10 @@ class PlaylistRepositoryImpl @Inject constructor(
         playlistDao.addSongToPlaylist(playlistId, songId)
     }
 
+    override suspend fun addSongsToPlaylist(playlistId: Long, songIds: List<Long>) {
+        playlistDao.addSongsToPlaylist(playlistId, songIds)
+    }
+
     override suspend fun removeSongFromPlaylist(playlistId: Long, songId: Long) {
         playlistDao.removeSongFromPlaylist(playlistId, songId)
     }

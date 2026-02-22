@@ -1,38 +1,34 @@
 package com.cycling.presentation.artists
 
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Sort
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import coil3.compose.AsyncImage
-import com.cycling.domain.model.Artist
-import com.cycling.presentation.components.IOSListItem
-import com.cycling.presentation.components.IOSTopAppBar
-import com.cycling.presentation.theme.SonicColors
+import com.cycling.presentation.components.IOSArtistCard
+import com.cycling.presentation.components.IOSCenteredContent
+import com.cycling.presentation.components.IOSScreenWithLargeTitle
+import com.cycling.presentation.theme.DesignTokens
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ArtistsScreen(
     onNavigateBack: () -> Unit,
@@ -41,6 +37,7 @@ fun ArtistsScreen(
     bottomPadding: Dp = 0.dp
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val gridState = rememberLazyGridState()
 
     LaunchedEffect(Unit) {
         viewModel.uiEffect.collect { effect ->
@@ -50,84 +47,59 @@ fun ArtistsScreen(
         }
     }
 
-    Scaffold(
-        topBar = {
-            IOSTopAppBar(
-                title = "歌手",
-                onNavigateBack = onNavigateBack
-            )
-        },
-        containerColor = MaterialTheme.colorScheme.background
-    ) { paddingValues ->
-        if (uiState.isLoading) {
-            androidx.compose.foundation.layout.Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(paddingValues),
-                contentAlignment = Alignment.Center
-            ) {
-                CircularProgressIndicator(
-                    color = MaterialTheme.colorScheme.primary
+    IOSScreenWithLargeTitle(
+        title = "歌手",
+        scrollState = gridState,
+        onNavigateBack = onNavigateBack,
+        actions = {
+            IconButton(onClick = { }) {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.Sort,
+                    contentDescription = "排序",
+                    tint = MaterialTheme.colorScheme.primary
                 )
             }
+        },
+        isLoading = uiState.isLoading,
+        loadingContent = {
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
+            ) {
+                CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
+            }
+        }
+    ) {
+        if (uiState.artists.isEmpty()) {
+            IOSCenteredContent(
+                icon = Icons.Default.Person,
+                iconTint = MaterialTheme.colorScheme.onSurfaceVariant,
+                title = "暂无歌手",
+                subtitle = "您的音乐库中没有歌手信息",
+                button = { }
+            )
         } else {
-            LazyColumn(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(paddingValues)
+            LazyVerticalGrid(
+                columns = GridCells.Adaptive(minSize = DesignTokens.Card.artistCardSize + DesignTokens.Spacing.lg),
+                modifier = Modifier.fillMaxSize(),
+                state = gridState,
+                contentPadding = PaddingValues(
+                    start = DesignTokens.Spacing.md,
+                    end = DesignTokens.Spacing.md,
+                    top = DesignTokens.Spacing.sm,
+                    bottom = DesignTokens.Spacing.md + bottomPadding
+                ),
+                horizontalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.md),
+                verticalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.lg)
             ) {
                 items(uiState.artists, key = { it.id }) { artist ->
-                    ArtistItem(
-                        artist = artist,
-                        onClick = { viewModel.handleIntent(ArtistsIntent.ArtistClick(artist)) },
-                        showDivider = artist != uiState.artists.last()
+                    IOSArtistCard(
+                        name = artist.name,
+                        artwork = artist.artistArt,
+                        onClick = { viewModel.handleIntent(ArtistsIntent.ArtistClick(artist)) }
                     )
                 }
             }
         }
     }
-}
-
-@Composable
-private fun ArtistItem(
-    artist: Artist,
-    onClick: () -> Unit,
-    showDivider: Boolean
-) {
-    IOSListItem(
-        title = artist.name,
-        onClick = onClick,
-        showDivider = showDivider,
-        leading = {
-            androidx.compose.foundation.layout.Box(
-                modifier = Modifier
-                    .size(48.dp)
-                    .clip(CircleShape),
-                contentAlignment = Alignment.Center
-            ) {
-                if (artist.artistArt != null) {
-                    AsyncImage(
-                        model = artist.artistArt,
-                        contentDescription = null,
-                        modifier = Modifier.fillMaxSize(),
-                        contentScale = ContentScale.Crop
-                    )
-                } else {
-                    Icon(
-                        imageVector = Icons.Default.Person,
-                        contentDescription = null,
-                        tint = SonicColors.Blue,
-                        modifier = Modifier.size(32.dp)
-                    )
-                }
-            }
-        },
-        trailing = {
-            Text(
-                text = "${artist.numberOfAlbums} 张专辑",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-        }
-    )
 }

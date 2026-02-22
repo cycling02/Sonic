@@ -40,6 +40,14 @@ interface PlaylistDao {
         insertPlaylistSong(PlaylistSongEntity(playlistId = playlistId, songId = songId, position = maxPosition + 1))
     }
 
+    @Transaction
+    suspend fun addSongsToPlaylist(playlistId: Long, songIds: List<Long>) {
+        val maxPosition = getMaxPosition(playlistId) ?: -1
+        songIds.forEachIndexed { index, songId ->
+            insertPlaylistSong(PlaylistSongEntity(playlistId = playlistId, songId = songId, position = maxPosition + 1 + index))
+        }
+    }
+
     @Query("SELECT MAX(position) FROM playlist_songs WHERE playlistId = :playlistId")
     suspend fun getMaxPosition(playlistId: Long): Int?
 

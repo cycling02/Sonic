@@ -23,6 +23,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyListState
+import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -33,10 +34,12 @@ import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LargeTopAppBar
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
@@ -53,8 +56,11 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import com.cycling.presentation.theme.DesignTokens
 import com.cycling.presentation.theme.SonicColors
 import com.cycling.presentation.theme.SonicTheme
 import kotlinx.coroutines.delay
@@ -72,8 +78,13 @@ fun IOSTopAppBar(
         title = {
             Text(
                 text = title,
-                style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.onSurface
+                style = MaterialTheme.typography.headlineMedium.copy(
+                    fontSize = 17.sp,
+                    fontWeight = androidx.compose.ui.text.font.FontWeight.SemiBold
+                ),
+                color = MaterialTheme.colorScheme.onSurface,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
             )
         },
         navigationIcon = {
@@ -100,29 +111,64 @@ fun IOSTopAppBar(
 @Composable
 fun IOSLargeTitleTopAppBar(
     title: String,
-    isLarge: Boolean,
+    scrollState: LazyListState,
     modifier: Modifier = Modifier,
     navigationIcon: @Composable (() -> Unit)? = null,
-    actions: @Composable (() -> Unit)? = null
+    actions: @Composable (() -> Unit)? = null,
+    scrollBehavior: androidx.compose.material3.TopAppBarScrollBehavior? = null
 ) {
-    TopAppBar(
+    LargeTopAppBar(
         title = {
             Text(
                 text = title,
-                style = if (isLarge) MaterialTheme.typography.headlineLarge
-                else MaterialTheme.typography.headlineSmall,
-                color = MaterialTheme.colorScheme.onBackground
+                style = MaterialTheme.typography.displayLarge.copy(
+                    fontSize = 34.sp,
+                    fontWeight = androidx.compose.ui.text.font.FontWeight.Bold
+                ),
+                color = MaterialTheme.colorScheme.onBackground,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
             )
         },
-        navigationIcon = {
-            navigationIcon?.invoke()
+        navigationIcon = navigationIcon ?: {},
+        actions = { actions?.invoke() },
+        scrollBehavior = scrollBehavior,
+        colors = TopAppBarDefaults.largeTopAppBarColors(
+            containerColor = MaterialTheme.colorScheme.background,
+            scrolledContainerColor = MaterialTheme.colorScheme.surface
+        ),
+        modifier = modifier
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun IOSLargeTitleTopAppBar(
+    title: String,
+    scrollState: LazyGridState,
+    modifier: Modifier = Modifier,
+    navigationIcon: @Composable (() -> Unit)? = null,
+    actions: @Composable (() -> Unit)? = null,
+    scrollBehavior: androidx.compose.material3.TopAppBarScrollBehavior? = null
+) {
+    LargeTopAppBar(
+        title = {
+            Text(
+                text = title,
+                style = MaterialTheme.typography.displayLarge.copy(
+                    fontSize = 34.sp,
+                    fontWeight = androidx.compose.ui.text.font.FontWeight.Bold
+                ),
+                color = MaterialTheme.colorScheme.onBackground,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
         },
-        actions = {
-            actions?.invoke()
-        },
-        colors = TopAppBarDefaults.topAppBarColors(
-            containerColor = if (isLarge) MaterialTheme.colorScheme.background
-            else MaterialTheme.colorScheme.surface,
+        navigationIcon = navigationIcon ?: {},
+        actions = { actions?.invoke() },
+        scrollBehavior = scrollBehavior,
+        colors = TopAppBarDefaults.largeTopAppBarColors(
+            containerColor = MaterialTheme.colorScheme.background,
             scrolledContainerColor = MaterialTheme.colorScheme.surface
         ),
         modifier = modifier
@@ -139,13 +185,16 @@ fun IOSSectionHeader(
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 8.dp),
+            .padding(horizontal = DesignTokens.Spacing.md, vertical = DesignTokens.Spacing.sm),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
         Text(
             text = title,
-            style = MaterialTheme.typography.titleLarge,
+            style = MaterialTheme.typography.titleLarge.copy(
+                fontSize = 22.sp,
+                fontWeight = androidx.compose.ui.text.font.FontWeight.Bold
+            ),
             color = MaterialTheme.colorScheme.onBackground
         )
         onActionClick?.let {
@@ -180,21 +229,21 @@ fun IOSCenteredContent(
             modifier = Modifier.size(60.dp),
             tint = iconTint
         )
-        Spacer(modifier = Modifier.height(24.dp))
+        Spacer(modifier = Modifier.height(DesignTokens.Spacing.lg))
         Text(
             text = title,
             style = MaterialTheme.typography.headlineSmall,
             color = titleColor
         )
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(DesignTokens.Spacing.sm))
         Text(
             text = subtitle,
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = TextAlign.Center,
-            modifier = Modifier.padding(horizontal = 32.dp)
+            modifier = Modifier.padding(horizontal = DesignTokens.Spacing.xl)
         )
-        Spacer(modifier = Modifier.height(32.dp))
+        Spacer(modifier = Modifier.height(DesignTokens.Spacing.xl))
         button()
     }
 }
@@ -210,7 +259,7 @@ fun IOSResultRow(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(vertical = 12.dp),
+                .padding(vertical = DesignTokens.Spacing.sm + DesignTokens.Spacing.xs),
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Text(
@@ -242,7 +291,7 @@ fun IOSCardContainer(
 ) {
     Column(
         modifier = modifier
-            .clip(RoundedCornerShape(12.dp))
+            .clip(RoundedCornerShape(DesignTokens.CornerRadius.medium))
             .background(MaterialTheme.colorScheme.surface)
             .padding(20.dp)
     ) {
@@ -327,8 +376,8 @@ fun IOSScrollbar(
         Box(
             modifier = modifier
                 .fillMaxHeight()
-                .width(thumbWidth + 8.dp)
-                .padding(horizontal = 2.dp),
+                .width(thumbWidth + DesignTokens.Spacing.sm)
+                .padding(horizontal = DesignTokens.Spacing.xs),
             contentAlignment = Alignment.TopEnd
         ) {
             Box(
@@ -337,7 +386,7 @@ fun IOSScrollbar(
                     .width(thumbWidth)
                     .height(thumbHeightDp)
                     .offset(y = thumbOffsetDp)
-                    .clip(RoundedCornerShape(thumbWidth / 2))
+                    .clip(RoundedCornerShape(2.dp))
                     .background(thumbColor)
                     .draggable(
                         orientation = Orientation.Vertical,
@@ -374,6 +423,7 @@ private fun IOSTopAppBarPreview() {
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Preview(showBackground = true, name = "Light - Large")
 @Preview(showBackground = true, name = "Dark - Large", uiMode = 32)
 @Composable
@@ -382,20 +432,7 @@ private fun IOSLargeTitleTopAppBarPreview() {
         Column(modifier = Modifier.background(MaterialTheme.colorScheme.background)) {
             IOSLargeTitleTopAppBar(
                 title = "音乐",
-                isLarge = true,
-                actions = {
-                    IconButton(onClick = {}) {
-                        Icon(
-                            imageVector = Icons.Default.Settings,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.primary
-                        )
-                    }
-                }
-            )
-            IOSLargeTitleTopAppBar(
-                title = "音乐",
-                isLarge = false,
+                scrollState = rememberLazyListState(),
                 actions = {
                     IconButton(onClick = {}) {
                         Icon(
@@ -410,6 +447,11 @@ private fun IOSLargeTitleTopAppBarPreview() {
     }
 }
 
+@Composable
+private fun rememberLazyListState(): LazyListState {
+    return remember { LazyListState() }
+}
+
 @Preview(showBackground = true, name = "Light")
 @Preview(showBackground = true, name = "Dark", uiMode = 32)
 @Composable
@@ -417,7 +459,7 @@ private fun IOSSectionHeaderPreview() {
     SonicTheme {
         Column(
             modifier = Modifier.background(MaterialTheme.colorScheme.background),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+            verticalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.md)
         ) {
             IOSSectionHeader(title = "最近播放", onActionClick = {})
             IOSSectionHeader(title = "热门专辑", action = "更多", onActionClick = {})
@@ -435,7 +477,7 @@ private fun IOSCenteredContentPreview() {
             modifier = Modifier
                 .fillMaxSize()
                 .background(MaterialTheme.colorScheme.background),
-            verticalArrangement = Arrangement.spacedBy(32.dp)
+            verticalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.xl)
         ) {
             Box(modifier = Modifier.weight(1f)) {
                 IOSCenteredContent(
@@ -492,9 +534,9 @@ private fun IOSCardContainerPreview() {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp)
+                .padding(DesignTokens.Spacing.md)
                 .background(MaterialTheme.colorScheme.background),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+            verticalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.md)
         ) {
             IOSCardContainer {
                 Text(
@@ -502,7 +544,7 @@ private fun IOSCardContainerPreview() {
                     style = MaterialTheme.typography.labelLarge,
                     color = MaterialTheme.colorScheme.onSurface
                 )
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(DesignTokens.Spacing.sm))
                 Text(
                     text = "这是卡片内容描述文字",
                     style = MaterialTheme.typography.bodyMedium,
@@ -544,20 +586,20 @@ private fun CompletedContentPreview() {
                     tint = Color.White
                 )
             }
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(DesignTokens.Spacing.lg))
             Text(
                 text = "扫描完成",
                 style = MaterialTheme.typography.headlineSmall,
                 color = MaterialTheme.colorScheme.onBackground
             )
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(DesignTokens.Spacing.lg))
             IOSCardContainer(modifier = Modifier.fillMaxWidth(0.85f)) {
                 IOSResultRow(label = "歌曲", value = "128")
                 IOSResultRow(label = "专辑", value = "32")
                 IOSResultRow(label = "歌手", value = "16")
                 IOSResultRow(label = "耗时", value = "1234ms", isLast = true)
             }
-            Spacer(modifier = Modifier.height(32.dp))
+            Spacer(modifier = Modifier.height(DesignTokens.Spacing.xl))
             IOSTextButton(text = "重新扫描", onClick = {})
         }
     }

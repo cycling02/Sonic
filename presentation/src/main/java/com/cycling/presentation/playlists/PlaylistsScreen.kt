@@ -16,6 +16,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.QueueMusic
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.QueueMusic
 import androidx.compose.material3.AlertDialog
@@ -79,6 +80,14 @@ fun PlaylistsScreen(
         )
     }
 
+    if (uiState.showAiCreateDialog) {
+        AiPlaylistCreationDialog(
+            uiState = uiState,
+            onIntent = { viewModel.handleIntent(it) },
+            onDismiss = { viewModel.handleIntent(PlaylistsIntent.DismissAiCreateDialog) }
+        )
+    }
+
     if (uiState.showRenameDialog && uiState.playlistToRename != null) {
         val playlistToRename = uiState.playlistToRename!!
         RenamePlaylistDialog(
@@ -101,6 +110,13 @@ fun PlaylistsScreen(
                 title = "播放列表",
                 onNavigateBack = onNavigateBack,
                 actions = {
+                    IconButton(onClick = { viewModel.handleIntent(PlaylistsIntent.ShowAiCreateDialog) }) {
+                        Icon(
+                            imageVector = Icons.Default.AutoAwesome,
+                            contentDescription = "AI 创建歌单",
+                            tint = MaterialTheme.colorScheme.primary
+                        )
+                    }
                     IconButton(onClick = { showCreateDialog = true }) {
                         Icon(
                             imageVector = Icons.Default.Add,

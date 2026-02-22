@@ -25,6 +25,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material3.LocalTextStyle
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
@@ -55,6 +56,7 @@ import com.cycling.domain.lyrics.model.karaoke.KaraokeLine
 import com.cycling.domain.lyrics.model.synced.SyncedLine
 import com.cycling.presentation.lyrics.utils.isRtl
 import com.cycling.presentation.lyrics.utils.modifier.dynamicFadingEdge
+import com.cycling.presentation.theme.DesignTokens
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.withContext
@@ -78,14 +80,18 @@ fun KaraokeLyricsView(
         fontWeight = FontWeight.Bold,
         textMotion = TextMotion.Animated,
     ),
-    textColor: Color = Color.White,
+    textColor: Color = Color.Unspecified,
     breathingDotsDefaults: KaraokeBreathingDotsDefaults = KaraokeBreathingDotsDefaults(),
     blendMode: BlendMode = BlendMode.Plus,
     useBlurEffect: Boolean = true,
-    offset: Dp = 32.dp,
+    offset: Dp = DesignTokens.Spacing.xl,
     showDebugRectangles: Boolean = false
 ) {
     val density = LocalDensity.current
+    val colorScheme = MaterialTheme.colorScheme
+    val primaryTextColor = if (textColor == Color.Unspecified) colorScheme.onSurface else textColor
+    val mutedTextColor = colorScheme.onSurfaceVariant
+    
     val stableNormalTextStyle = remember(normalLineTextStyle) { normalLineTextStyle }
     val stableAccompanimentTextStyle =
         remember(accompanimentLineTextStyle) { accompanimentLineTextStyle }
@@ -253,7 +259,10 @@ fun KaraokeLyricsView(
             try {
                 scrollInCode.value = true
                 if (scrollOffset != null) {
-                    listState.animateScrollBy(scrollOffset, tween(400, 0, EaseOut))
+                    listState.animateScrollBy(
+                        scrollOffset,
+                        tween(DesignTokens.Animation.animationDurationMedium, 0, EaseOut)
+                    )
                 } else {
                     listState.animateScrollToItem(firstFocusedLineIndex, -stableOffsetPx)
                 }
@@ -277,7 +286,7 @@ fun KaraokeLyricsView(
                 val isCurrentFocusLine by rememberUpdatedState(index in allFocusedLineIndex)
 
                 Column(modifier = Modifier.fillMaxWidth().dynamicFadingEdge(listState, index)) {
-                    val animDuration = 600
+                    val animDuration = DesignTokens.Animation.animationDurationLong + 100
 
                     val previousLine = lyrics.lines.getOrNull(index - 1)
 
@@ -304,7 +313,7 @@ fun KaraokeLyricsView(
                             endTimeMs = if (showDotsIntro) firstLine!!.start else line.start,
                             currentTimeProvider = timeProvider,
                             defaults = breathingDotsDefaults,
-                            modifier = Modifier.padding(vertical = 12.dp)
+                            modifier = Modifier.padding(vertical = DesignTokens.Spacing.md)
                         )
                     }
 
@@ -341,7 +350,12 @@ fun KaraokeLyricsView(
                         } else {
                             0f
                         },
-                        animationSpec = tween(300),
+                        animationSpec = tween(DesignTokens.Animation.animationDurationMedium),
+                    )
+
+                    val lineAlpha by animateFloatAsState(
+                        targetValue = if (isCurrentFocusLine) 1f else 0.5f,
+                        animationSpec = tween(DesignTokens.Animation.animationDurationMedium),
                     )
 
                     when (line) {
@@ -363,13 +377,15 @@ fun KaraokeLyricsView(
                                     onLinePressed = { onLinePressed(line) },
                                     blurRadius = { blurRadiusState.value },
                                     blendMode = stableBlendMode,
+                                    activeAlpha = lineAlpha,
+                                    inactiveAlpha = 0.5f,
                                 ) {
                                     KaraokeLineText(
                                         line = line,
                                         currentTimeProvider = timeProvider,
                                         normalLineTextStyle = stableNormalTextStyle,
                                         accompanimentLineTextStyle = stableAccompanimentTextStyle,
-                                        activeColor = textColor,
+                                        activeColor = primaryTextColor,
                                         blendMode = stableBlendMode,
                                         showDebugRectangles = showDebugRectangles,
                                         precalculatedLayouts = layoutCache[index]
@@ -417,14 +433,14 @@ fun KaraokeLyricsView(
                                         blurRadius = { blurRadiusState.value },
                                         blendMode = stableBlendMode,
                                         activeAlpha = 0.6f,
-                                        inactiveAlpha = 0.2f
+                                        inactiveAlpha = 0.3f
                                     ) {
                                         KaraokeLineText(
                                             line = line,
                                             currentTimeProvider = timeProvider,
                                             normalLineTextStyle = stableNormalTextStyle,
                                             accompanimentLineTextStyle = stableAccompanimentTextStyle,
-                                            activeColor = textColor,
+                                            activeColor = primaryTextColor,
                                             blendMode = stableBlendMode,
                                             precalculatedLayouts = layoutCache[index]
                                         )
@@ -442,12 +458,14 @@ fun KaraokeLyricsView(
                                 onLinePressed = { onLinePressed(line) },
                                 blurRadius = { blurRadiusState.value },
                                 blendMode = stableBlendMode,
+                                activeAlpha = lineAlpha,
+                                inactiveAlpha = 0.5f,
                             ) {
                                 SyncedLineText(
                                     line = line,
                                     isLineRtl = isLineRtl,
                                     textStyle = stableNormalTextStyle.copy(lineHeight = 1.2.em),
-                                    textColor = textColor,
+                                    textColor = if (isCurrentFocusLine) primaryTextColor else mutedTextColor,
                                 )
                             }
                         }

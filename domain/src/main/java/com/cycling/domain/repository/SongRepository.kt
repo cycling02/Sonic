@@ -32,4 +32,6 @@ interface SongRepository {
     suspend fun updateLastPlayedAt(songId: Long)
 
     suspend fun getLibraryStats(): LibraryStats
+
+    suspend fun updateSongInfo(songId: Long, title: String?, artist: String?, album: String?): Boolean
 }

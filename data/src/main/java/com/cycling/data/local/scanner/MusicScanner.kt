@@ -10,6 +10,8 @@ import com.cycling.domain.model.ScanStep
 import com.cycling.domain.repository.ExcludedFolderRepository
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -54,8 +56,15 @@ class MusicScanner @Inject constructor(
             songDao.deleteAllSongs()
             Timber.d("saveSongsToDatabase: deleted all existing songs")
             
+            val songsWithBitrate = songs.map { song ->
+                async {
+                    val bitrate = mediaStoreHelper.extractBitrate(song.path)
+                    song.copy(bitrate = bitrate)
+                }
+            }.awaitAll()
+            
             var processed = 0
-            songs.chunked(BATCH_SIZE).forEach { chunk ->
+            songsWithBitrate.chunked(BATCH_SIZE).forEach { chunk ->
                 songDao.insertSongs(chunk.map { it.toEntity() })
                 processed += chunk.size
                 Timber.d("saveSongsToDatabase: saved batch, progress = $processed/${songs.size}")

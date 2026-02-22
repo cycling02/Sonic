@@ -7,8 +7,10 @@ import com.cycling.data.mapper.toEntity
 import com.cycling.domain.model.LibraryStats
 import com.cycling.domain.model.Song
 import com.cycling.domain.repository.SongRepository
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.withContext
 import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -110,7 +112,7 @@ class SongRepositoryImpl @Inject constructor(
         songDao.updateLastPlayedAt(songId, System.currentTimeMillis())
     }
 
-    override suspend fun getLibraryStats(): LibraryStats {
+    override suspend fun getLibraryStats(): LibraryStats = withContext(Dispatchers.IO) {
         val songsWithoutBitrate = songDao.getSongsWithoutBitrate()
         if (songsWithoutBitrate.isNotEmpty()) {
             songsWithoutBitrate.forEach { song ->
@@ -125,12 +127,29 @@ class SongRepositoryImpl @Inject constructor(
         val hqCount = songDao.getHqCount()
         val othersCount = songDao.getOthersCount()
         
-        return LibraryStats(
+        LibraryStats(
             totalSongs = totalSongs,
             hrCount = hrCount,
             sqCount = sqCount,
             hqCount = hqCount,
             othersCount = othersCount
         )
+    }
+
+    override suspend fun updateSongInfo(songId: Long, title: String?, artist: String?, album: String?): Boolean {
+        Timber.d("updateSongInfo: songId=$songId, title=$title, artist=$artist, album=$album")
+        val song = songDao.getSongById(songId)
+        if (song == null) {
+            Timber.w("updateSongInfo: song not found, songId=$songId")
+            return false
+        }
+        
+        val updatedTitle = title ?: song.title
+        val updatedArtist = artist ?: song.artist
+        val updatedAlbum = album ?: song.album
+        
+        songDao.updateSongInfo(songId, updatedTitle, updatedArtist, updatedAlbum)
+        Timber.i("updateSongInfo: successfully updated song info for songId=$songId")
+        return true
     }
 }

@@ -18,7 +18,7 @@ import com.cycling.data.local.entity.SongEntity
         PlaylistEntity::class,
         PlaylistSongEntity::class,
         AiInfoCacheEntity::class,
-        SearchHistoryEntity::class
+        SearchHistoryEntity::class   
     ],
     version = 1,
     exportSchema = false

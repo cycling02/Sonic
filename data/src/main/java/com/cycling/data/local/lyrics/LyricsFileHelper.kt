@@ -3,6 +3,8 @@ package com.cycling.data.local.lyrics
 import java.io.File
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 @Singleton
 class LyricsFileHelper @Inject constructor() {
@@ -26,17 +28,17 @@ class LyricsFileHelper @Inject constructor() {
         return null
     }
 
-    fun readLyricsContent(lyricsFile: File): String? {
-        return try {
-            if (!lyricsFile.exists()) return null
+    suspend fun readLyricsContent(lyricsFile: File): String? = withContext(Dispatchers.IO) {
+        return@withContext try {
+            if (!lyricsFile.exists()) return@withContext null
             lyricsFile.readText()
         } catch (e: Exception) {
             null
         }
     }
 
-    fun getLyricsContent(audioFilePath: String): String? {
-        val lyricsFile = findLyricsFile(audioFilePath) ?: return null
-        return readLyricsContent(lyricsFile)
+    suspend fun getLyricsContent(audioFilePath: String): String? = withContext(Dispatchers.IO) {
+        val lyricsFile = findLyricsFile(audioFilePath) ?: return@withContext null
+        readLyricsContent(lyricsFile)
     }
 }

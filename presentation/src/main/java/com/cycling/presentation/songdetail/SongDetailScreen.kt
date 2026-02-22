@@ -22,6 +22,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.PlaylistAdd
 import androidx.compose.material.icons.filled.ContentCopy
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.MusicNote
@@ -64,6 +65,7 @@ import java.util.Locale
 fun SongDetailScreen(
     onNavigateBack: () -> Unit,
     onNavigateToPlayer: (Long) -> Unit,
+    onNavigateToTagEditor: (Long) -> Unit,
     onNavigateToApiKeyConfig: () -> Unit = {},
     viewModel: SongDetailViewModel = hiltViewModel()
 ) {
@@ -74,6 +76,7 @@ fun SongDetailScreen(
         viewModel.uiEffect.collect { effect ->
             when (effect) {
                 is SongDetailEffect.NavigateToPlayer -> onNavigateToPlayer(effect.songId)
+                is SongDetailEffect.NavigateToTagEditor -> onNavigateToTagEditor(effect.songId)
                 is SongDetailEffect.ShowAddToPlaylistDialog -> {}
                 is SongDetailEffect.ShowCopiedMessage -> {
                     val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
@@ -101,6 +104,16 @@ fun SongDetailScreen(
                             imageVector = androidx.compose.material.icons.Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = "返回"
                         )
+                    }
+                },
+                actions = {
+                    uiState.song?.let { song ->
+                        IconButton(onClick = { onNavigateToTagEditor(song.id) }) {
+                            Icon(
+                                imageVector = Icons.Default.Edit,
+                                contentDescription = "编辑标签"
+                            )
+                        }
                     }
                 }
             )

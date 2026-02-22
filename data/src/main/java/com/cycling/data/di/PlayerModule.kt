@@ -2,8 +2,11 @@ package com.cycling.data.di
 
 import android.content.Context
 import androidx.annotation.OptIn
+import androidx.media3.common.AudioAttributes
 import androidx.media3.common.util.UnstableApi
+import androidx.media3.datasource.DefaultDataSource
 import androidx.media3.exoplayer.ExoPlayer
+import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
 import com.cycling.data.player.PlayerManager
 import com.cycling.data.repository.PlayerRepositoryImpl
 import com.cycling.domain.repository.PlayerRepository
@@ -33,7 +36,12 @@ abstract class PlayerModule {
         fun provideExoPlayer(
             @ApplicationContext context: Context
         ): ExoPlayer {
+            val dataSourceFactory = DefaultDataSource.Factory(context)
+            
             return ExoPlayer.Builder(context)
+                .setAudioAttributes(AudioAttributes.DEFAULT, true)
+                .setHandleAudioBecomingNoisy(true)
+                .setMediaSourceFactory(DefaultMediaSourceFactory(dataSourceFactory))
                 .build()
         }
 

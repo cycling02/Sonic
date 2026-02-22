@@ -6,6 +6,7 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Update
+import com.cycling.data.local.entity.LibraryStatsEntity
 import com.cycling.data.local.entity.SongEntity
 import kotlinx.coroutines.flow.Flow
 
@@ -79,4 +80,18 @@ interface SongDao {
 
     @Query("UPDATE songs SET bitrate = :bitrate WHERE id = :songId")
     suspend fun updateBitrate(songId: Long, bitrate: Int)
+
+    @Query("UPDATE songs SET title = :title, artist = :artist, album = :album WHERE id = :songId")
+    suspend fun updateSongInfo(songId: Long, title: String, artist: String, album: String)
+
+    @Query("""
+        SELECT 
+            COUNT(*) as totalSongs,
+            SUM(CASE WHEN bitrate > 1411 THEN 1 ELSE 0 END) as hrCount,
+            SUM(CASE WHEN bitrate = 1411 THEN 1 ELSE 0 END) as sqCount,
+            SUM(CASE WHEN bitrate >= 320 AND bitrate < 1411 THEN 1 ELSE 0 END) as hqCount,
+            SUM(CASE WHEN bitrate < 320 OR bitrate = 0 THEN 1 ELSE 0 END) as othersCount
+        FROM songs
+    """)
+    suspend fun getLibraryStats(): LibraryStatsEntity
 }

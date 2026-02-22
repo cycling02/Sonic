@@ -23,9 +23,9 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
+import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.Lyrics
 import androidx.compose.material.icons.filled.MusicNote
 import androidx.compose.material.icons.filled.Pause
@@ -65,6 +65,7 @@ import coil3.compose.AsyncImage
 import com.cycling.domain.model.RepeatMode
 import com.cycling.domain.model.Song
 import com.cycling.presentation.components.formatDuration
+import com.cycling.presentation.theme.DesignTokens
 import com.cycling.presentation.theme.SonicColors
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
@@ -91,7 +92,7 @@ fun PlayerScreen(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 8.dp),
+                .padding(horizontal = DesignTokens.Spacing.sm),
             verticalAlignment = Alignment.CenterVertically
         ) {
             IconButton(onClick = onNavigateBack) {
@@ -136,20 +137,20 @@ fun PlayerScreen(
             }
         }
 
-        Spacer(modifier = Modifier.height(32.dp))
+        Spacer(modifier = Modifier.height(DesignTokens.Spacing.xl))
 
         Box(
             modifier = Modifier
                 .fillMaxWidth()
                 .weight(1f)
-                .padding(horizontal = 32.dp),
+                .padding(horizontal = DesignTokens.Spacing.xl),
             contentAlignment = Alignment.Center
         ) {
             if (currentSong != null) {
                 Box(
                     modifier = Modifier
-                        .fillMaxWidth(0.85f)
-                        .clip(RoundedCornerShape(12.dp)),
+                        .fillMaxWidth(DesignTokens.Player.playerArtworkWidthPercent)
+                        .clip(RoundedCornerShape(DesignTokens.CornerRadius.medium)),
                     contentAlignment = Alignment.Center
                 ) {
                     if (currentSong.albumArt != null) {
@@ -181,12 +182,12 @@ fun PlayerScreen(
             }
         }
 
-        Spacer(modifier = Modifier.height(24.dp))
+        Spacer(modifier = Modifier.height(DesignTokens.Spacing.lg))
 
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 32.dp)
+                .padding(horizontal = DesignTokens.Spacing.xl)
         ) {
             if (currentSong != null) {
                 Row(
@@ -214,7 +215,7 @@ fun PlayerScreen(
                         )
                     }
                 }
-                Spacer(modifier = Modifier.height(4.dp))
+                Spacer(modifier = Modifier.height(DesignTokens.Spacing.xs))
                 Text(
                     text = currentSong.artist,
                     style = MaterialTheme.typography.bodyLarge,
@@ -227,10 +228,10 @@ fun PlayerScreen(
             }
         }
 
-        Spacer(modifier = Modifier.height(24.dp))
+        Spacer(modifier = Modifier.height(DesignTokens.Spacing.lg))
 
         Column(
-            modifier = Modifier.padding(horizontal = 16.dp)
+            modifier = Modifier.padding(horizontal = DesignTokens.Spacing.md)
         ) {
             Slider(
                 value = sliderValue ?: uiState.playbackPosition.toFloat(),
@@ -267,7 +268,7 @@ fun PlayerScreen(
             }
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(DesignTokens.Spacing.md))
 
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -300,14 +301,14 @@ fun PlayerScreen(
             IconButton(
                 onClick = { onIntent(PlayerIntent.PlayPause) },
                 modifier = Modifier
-                    .size(72.dp)
-                    .background(SonicColors.Red, RoundedCornerShape(36.dp))
+                    .size(DesignTokens.Player.playerPlayButtonSize)
+                    .background(SonicColors.Red, RoundedCornerShape(DesignTokens.Player.playerPlayButtonSize / 2))
             ) {
                 Icon(
                     imageVector = if (uiState.isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow,
                     contentDescription = if (uiState.isPlaying) "暂停" else "播放",
                     modifier = Modifier.size(40.dp),
-                    tint = MaterialTheme.colorScheme.onPrimary
+                    tint = Color.White
                 )
             }
 
@@ -339,7 +340,7 @@ fun PlayerScreen(
             }
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(DesignTokens.Spacing.md))
     }
 
     if (showQueue) {
@@ -350,7 +351,7 @@ fun PlayerScreen(
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp)
+                    .padding(horizontal = DesignTokens.Spacing.md)
             ) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -370,7 +371,7 @@ fun PlayerScreen(
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                         if (uiState.playbackQueue.isNotEmpty()) {
-                            Spacer(modifier = Modifier.width(16.dp))
+                            Spacer(modifier = Modifier.width(DesignTokens.Spacing.md))
                             IconButton(onClick = { onIntent(PlayerIntent.ClearQueue) }) {
                                 Icon(
                                     imageVector = Icons.Default.Delete,
@@ -382,7 +383,7 @@ fun PlayerScreen(
                     }
                 }
 
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(DesignTokens.Spacing.sm))
 
                 if (uiState.playbackQueue.isEmpty()) {
                     Box(
@@ -418,7 +419,7 @@ fun PlayerScreen(
                     }
                 }
 
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(DesignTokens.Spacing.md))
             }
         }
     }
@@ -450,8 +451,8 @@ private fun QueueSongItem(
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .background(MaterialTheme.colorScheme.errorContainer, RoundedCornerShape(12.dp))
-                    .padding(horizontal = 16.dp),
+                    .background(MaterialTheme.colorScheme.errorContainer, RoundedCornerShape(DesignTokens.CornerRadius.medium))
+                    .padding(horizontal = DesignTokens.Spacing.md),
                 contentAlignment = Alignment.CenterEnd
             ) {
                 Icon(
@@ -467,9 +468,9 @@ private fun QueueSongItem(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .clip(RoundedCornerShape(12.dp))
+                .clip(RoundedCornerShape(DesignTokens.CornerRadius.medium))
                 .background(
-                    if (isCurrentSong) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f)
+                    if (isCurrentSong) SonicColors.Red.copy(alpha = 0.1f)
                     else MaterialTheme.colorScheme.surface
                 )
                 .clickable(onClick = onClick)
@@ -479,7 +480,7 @@ private fun QueueSongItem(
             Box(
                 modifier = Modifier
                     .size(48.dp)
-                    .clip(RoundedCornerShape(8.dp))
+                    .clip(RoundedCornerShape(DesignTokens.CornerRadius.small))
                     .background(MaterialTheme.colorScheme.surfaceVariant),
                 contentAlignment = Alignment.Center
             ) {

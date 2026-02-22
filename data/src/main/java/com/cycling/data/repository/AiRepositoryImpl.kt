@@ -6,7 +6,9 @@ import com.cycling.data.store.ApiKeyStore
 import com.cycling.data.store.AiInfoCacheStore
 import com.cycling.domain.model.AiInfo
 import com.cycling.domain.model.AiInfoType
+import com.cycling.domain.model.Song
 import com.cycling.domain.repository.AiRepository
+import kotlinx.serialization.json.Json
 import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -105,6 +107,26 @@ class AiRepositoryImpl @Inject constructor(
                 aiInfoCacheStore.saveAlbumInfo(albumTitle, artist, info)
             }
         }
+    }
+
+    override suspend fun generatePlaylistByTheme(
+        theme: String,
+        songs: List<Song>
+    ): Result<List<Long>> {
+        Timber.d("generatePlaylistByTheme: theme=$theme, songCount=${songs.size}")
+        
+        if (songs.isEmpty()) {
+            Timber.w("generatePlaylistByTheme: empty song list")
+            return Result.success(emptyList())
+        }
+        
+        val apiKey = getApiKey() ?: run {
+            Timber.w("generatePlaylistByTheme: API Key not configured")
+            return Result.failure(Exception("API Key 未配置"))
+        }
+        
+        val prompt = buildPlaylistPrompt(theme, songs)
+        return callPlaylistApi(apiKey, prompt)
     }
 
     private suspend fun callApi(
@@ -227,5 +249,67 @@ class AiRepositoryImpl @Inject constructor(
 
 如果某些信息无法确定，请标注"暂无确切信息"。
         """.trimIndent()
+    }
+
+    private fun buildPlaylistPrompt(theme: String, songs: List<Song>): String {
+        val songList = songs.joinToString("\n") { song ->
+            "${song.id}|${song.title}|${song.artist}|${song.album}"
+        }
+        return """
+你是一个音乐推荐专家。用户想要创建一个主题为"$theme"的播放列表。
+以下是用户音乐库中的歌曲列表（格式：ID|歌曲名|艺术家|专辑）:
+$songList
+
+请选择最适合该主题的歌曲，返回 JSON 数组格式，只包含歌曲 ID，例如: [1, 2, 3, 4, 5]
+如果没有合适的歌曲，返回空数组 []
+只返回 JSON 数组，不要有其他文字。
+        """.trimIndent()
+    }
+
+    private suspend fun callPlaylistApi(
+        apiKey: String,
+        prompt: String
+    ): Result<List<Long>> {
+        Timber.d("callPlaylistApi: calling API for playlist generation")
+        val request = DeepSeekRequest(
+            messages = listOf(
+                DeepSeekRequest.Message(
+                    role = "system",
+                    content = "你是一位专业的音乐推荐专家，擅长根据主题和歌曲信息进行音乐推荐。请严格按照要求的格式返回结果，只返回 JSON 数组，不要有任何其他文字。"
+                ),
+                DeepSeekRequest.Message(
+                    role = "user",
+                    content = prompt
+                )
+            )
+        )
+
+        return deepSeekApiService.chat(apiKey, request).mapCatching { response ->
+            val content = response.getContent() ?: throw Exception("API 返回空内容")
+            Timber.d("callPlaylistApi: received response: $content")
+            parseSongIds(content)
+        }
+    }
+
+    private fun parseSongIds(content: String): List<Long> {
+        val jsonContent = content.trim()
+        return try {
+            val json = Json { ignoreUnknownKeys = true }
+            json.decodeFromString<List<Long>>(jsonContent)
+        } catch (e: Exception) {
+            Timber.e(e, "parseSongIds: failed to parse JSON: $jsonContent")
+            val regex = """\[(.*?)\]""".toRegex()
+            val match = regex.find(jsonContent)
+            if (match != null) {
+                val numbers = match.groupValues[1]
+                    .split(",")
+                    .mapNotNull { it.trim().toLongOrNull() }
+                Timber.d("parseSongIds: parsed via regex: $numbers")
+                numbers
+            } else {
+                Timber.w("parseSongIds: no valid JSON array found")
+                emptyList()
+            }
+        }
     }
 }

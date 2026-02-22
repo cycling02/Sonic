@@ -1,7 +1,3 @@
-<p align="center">
-  <img src="art/ic_launcher_foreground.png" alt="Sonic Logo" width="120" height="120">
-</p>
-
 <h1 align="center">Sonic</h1>
 
 <p align="center">
@@ -24,18 +20,6 @@
   <a href="#-contributing">Contributing</a>
 </p>
 
----
-
-## 📱 Screenshots
-
-<p align="center">
-  <img src="art/screenshots/home.png" width="200" alt="Home Screen">
-  <img src="art/screenshots/player.png" width="200" alt="Player Screen">
-  <img src="art/screenshots/lyrics.png" width="200" alt="Lyrics Screen">
-  <img src="art/screenshots/albums.png" width="200" alt="Albums Screen">
-</p>
-
----
 
 ## ✨ Overview
 

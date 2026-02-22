@@ -22,9 +22,9 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Album
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.outlined.MusicNote
+import androidx.compose.material.icons.automirrored.outlined.QueueMusic
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -43,6 +43,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
+import com.cycling.presentation.theme.DesignTokens
 import com.cycling.presentation.theme.SonicTheme
 
 @Composable
@@ -52,14 +53,17 @@ fun IOSMediaCard(
     artwork: String?,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
-    width: androidx.compose.ui.unit.Dp = 160.dp,
+    width: androidx.compose.ui.unit.Dp = DesignTokens.Card.mediaCardWidth,
     placeholderIcon: ImageVector = Icons.Outlined.MusicNote
 ) {
     val interactionSource = remember { MutableInteractionSource() }
     val isPressed by interactionSource.collectIsPressedAsState()
     val scale by animateFloatAsState(
-        targetValue = if (isPressed) 0.96f else 1f,
-        animationSpec = spring(dampingRatio = 0.7f, stiffness = Spring.StiffnessMedium),
+        targetValue = if (isPressed) DesignTokens.Animation.buttonPressScale else 1f,
+        animationSpec = spring(
+            dampingRatio = DesignTokens.Animation.springDampingRatio,
+            stiffness = DesignTokens.Animation.springStiffness
+        ),
         label = "scale"
     )
 
@@ -67,7 +71,7 @@ fun IOSMediaCard(
         modifier = modifier
             .width(width)
             .scale(scale)
-            .clip(RoundedCornerShape(12.dp))
+            .clip(RoundedCornerShape(DesignTokens.CornerRadius.medium))
             .clickable(
                 interactionSource = interactionSource,
                 indication = null,
@@ -77,8 +81,8 @@ fun IOSMediaCard(
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .aspectRatio(1f)
-                .clip(RoundedCornerShape(12.dp))
+                .aspectRatio(DesignTokens.Card.mediaCardAspectRatio)
+                .clip(RoundedCornerShape(DesignTokens.CornerRadius.medium))
                 .background(
                     Brush.linearGradient(
                         colors = listOf(
@@ -105,7 +109,7 @@ fun IOSMediaCard(
                 )
             }
         }
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(DesignTokens.Spacing.sm))
         Text(
             text = title,
             style = MaterialTheme.typography.labelLarge,
@@ -129,13 +133,16 @@ fun IOSArtistCard(
     artwork: String?,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
-    size: androidx.compose.ui.unit.Dp = 110.dp
+    size: androidx.compose.ui.unit.Dp = DesignTokens.Card.artistCardSize
 ) {
     val interactionSource = remember { MutableInteractionSource() }
     val isPressed by interactionSource.collectIsPressedAsState()
     val scale by animateFloatAsState(
-        targetValue = if (isPressed) 0.96f else 1f,
-        animationSpec = spring(dampingRatio = 0.7f, stiffness = Spring.StiffnessMedium),
+        targetValue = if (isPressed) DesignTokens.Animation.buttonPressScale else 1f,
+        animationSpec = spring(
+            dampingRatio = DesignTokens.Animation.springDampingRatio,
+            stiffness = DesignTokens.Animation.springStiffness
+        ),
         label = "scale"
     )
 
@@ -143,7 +150,6 @@ fun IOSArtistCard(
         modifier = modifier
             .width(size)
             .scale(scale)
-            .clip(RoundedCornerShape(12.dp))
             .clickable(
                 interactionSource = interactionSource,
                 indication = null,
@@ -181,13 +187,93 @@ fun IOSArtistCard(
                 )
             }
         }
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(DesignTokens.Spacing.sm))
         Text(
             text = name,
             style = MaterialTheme.typography.labelLarge,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
             color = MaterialTheme.colorScheme.onBackground
+        )
+    }
+}
+
+@Composable
+fun IOSPlaylistCard(
+    title: String,
+    subtitle: String,
+    artwork: String?,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    width: androidx.compose.ui.unit.Dp = DesignTokens.Card.mediaCardWidth
+) {
+    val interactionSource = remember { MutableInteractionSource() }
+    val isPressed by interactionSource.collectIsPressedAsState()
+    val scale by animateFloatAsState(
+        targetValue = if (isPressed) DesignTokens.Animation.buttonPressScale else 1f,
+        animationSpec = spring(
+            dampingRatio = DesignTokens.Animation.springDampingRatio,
+            stiffness = DesignTokens.Animation.springStiffness
+        ),
+        label = "scale"
+    )
+
+    Column(
+        modifier = modifier
+            .width(width)
+            .scale(scale)
+            .clip(RoundedCornerShape(DesignTokens.CornerRadius.medium))
+            .clickable(
+                interactionSource = interactionSource,
+                indication = null,
+                onClick = onClick
+            )
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .aspectRatio(DesignTokens.Card.mediaCardAspectRatio)
+                .clip(RoundedCornerShape(DesignTokens.CornerRadius.medium))
+                .background(
+                    Brush.linearGradient(
+                        colors = listOf(
+                            Color(0xFF667eea),
+                            Color(0xFF764ba2)
+                        )
+                    )
+                ),
+            contentAlignment = Alignment.Center
+        ) {
+            if (artwork != null) {
+                AsyncImage(
+                    model = artwork,
+                    contentDescription = null,
+                    modifier = Modifier.fillMaxSize(),
+                    contentScale = ContentScale.Crop
+                )
+            } else {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Outlined.QueueMusic,
+                    contentDescription = null,
+                    modifier = Modifier.size(48.dp),
+                    tint = Color.White.copy(alpha = 0.8f)
+                )
+            }
+        }
+        Spacer(modifier = Modifier.height(DesignTokens.Spacing.sm))
+        Text(
+            text = title,
+            style = MaterialTheme.typography.labelLarge,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            color = MaterialTheme.colorScheme.onBackground
+        )
+        Text(
+            text = subtitle,
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis
         )
     }
 }
@@ -229,6 +315,24 @@ private fun IOSArtistCardPreview() {
     }
 }
 
+@Preview(showBackground = true, name = "Light")
+@Preview(showBackground = true, name = "Dark", uiMode = 32)
+@Composable
+private fun IOSPlaylistCardPreview() {
+    SonicTheme {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp)
+                .background(MaterialTheme.colorScheme.background),
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            IOSPlaylistCard(title = "我喜欢的音乐", subtitle = "100首歌曲", artwork = null, onClick = {})
+            IOSPlaylistCard(title = "这是一个很长的播放列表名称", subtitle = "这是一个很长的描述", artwork = null, onClick = {})
+        }
+    }
+}
+
 @Preview(showBackground = true, widthDp = 400, name = "Light")
 @Preview(showBackground = true, widthDp = 400, name = "Dark", uiMode = 32)
 @Composable
@@ -260,6 +364,16 @@ private fun IOSCardsCombinedPreview() {
                 IOSArtistCard(name = "周杰伦", artwork = null, onClick = {})
                 IOSArtistCard(name = "林俊杰", artwork = null, onClick = {})
                 IOSArtistCard(name = "邓紫棋", artwork = null, onClick = {})
+            }
+
+            Text(
+                text = "我的歌单",
+                style = MaterialTheme.typography.titleLarge,
+                color = MaterialTheme.colorScheme.onBackground
+            )
+            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                IOSPlaylistCard(title = "我喜欢的音乐", subtitle = "100首歌曲", artwork = null, onClick = {})
+                IOSPlaylistCard(title = "运动歌单", subtitle = "50首歌曲", artwork = null, onClick = {})
             }
         }
     }

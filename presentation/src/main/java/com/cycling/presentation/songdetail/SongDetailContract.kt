@@ -16,10 +16,12 @@ sealed interface SongDetailIntent {
     data object PlaySong : SongDetailIntent
     data object AddToPlaylist : SongDetailIntent
     data class CopyPath(val path: String) : SongDetailIntent
+    data object EditTags : SongDetailIntent
 }
 
 sealed interface SongDetailEffect {
     data class NavigateToPlayer(val songId: Long) : SongDetailEffect
+    data class NavigateToTagEditor(val songId: Long) : SongDetailEffect
     data object ShowAddToPlaylistDialog : SongDetailEffect
     data class ShowCopiedMessage(val message: String) : SongDetailEffect
     data class ShowError(val message: String) : SongDetailEffect
