@@ -3,6 +3,7 @@ package com.cycling.presentation.songdetail
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -17,10 +18,13 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.PlaylistAdd
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Favorite
@@ -28,11 +32,14 @@ import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.MusicNote
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.PlaylistAdd
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -46,6 +53,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -65,7 +73,7 @@ import java.util.Locale
 fun SongDetailScreen(
     onNavigateBack: () -> Unit,
     onNavigateToPlayer: (Long) -> Unit,
-    onNavigateToTagEditor: (Long) -> Unit,
+    onNavigateToTagEditor: (Long) -> Unit = {},
     onNavigateToApiKeyConfig: () -> Unit = {},
     viewModel: SongDetailViewModel = hiltViewModel()
 ) {
@@ -76,16 +84,27 @@ fun SongDetailScreen(
         viewModel.uiEffect.collect { effect ->
             when (effect) {
                 is SongDetailEffect.NavigateToPlayer -> onNavigateToPlayer(effect.songId)
-                is SongDetailEffect.NavigateToTagEditor -> onNavigateToTagEditor(effect.songId)
                 is SongDetailEffect.ShowAddToPlaylistDialog -> {}
                 is SongDetailEffect.ShowCopiedMessage -> {
                     val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
                     val clip = ClipData.newPlainText("Song Path", effect.message)
                     clipboard.setPrimaryClip(clip)
                 }
-                is SongDetailEffect.ShowError -> {}
+                is SongDetailEffect.ShowError -> {
+                    Toast.makeText(context, effect.message, Toast.LENGTH_LONG).show()
+                }
+                is SongDetailEffect.ShowToast -> {
+                    Toast.makeText(context, effect.message, Toast.LENGTH_SHORT).show()
+                }
             }
         }
+    }
+
+    if (uiState.showDiscardDialog) {
+        DiscardChangesDialog(
+            onDiscard = { viewModel.handleIntent(SongDetailIntent.DiscardChanges) },
+            onKeepEditing = { viewModel.handleIntent(SongDetailIntent.KeepEditing) }
+        )
     }
 
     Scaffold(
@@ -93,13 +112,19 @@ fun SongDetailScreen(
             TopAppBar(
                 title = {
                     Text(
-                        text = "歌曲详情",
+                        text = if (uiState.isEditMode) "编辑歌曲信息" else "歌曲详情",
                         style = MaterialTheme.typography.titleMedium,
                         color = MaterialTheme.colorScheme.onSurface
                     )
                 },
                 navigationIcon = {
-                    IconButton(onClick = onNavigateBack) {
+                    IconButton(onClick = {
+                        if (uiState.isEditMode) {
+                            viewModel.handleIntent(SongDetailIntent.ExitEditMode)
+                        } else {
+                            onNavigateBack()
+                        }
+                    }) {
                         Icon(
                             imageVector = androidx.compose.material.icons.Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = "返回"
@@ -107,12 +132,34 @@ fun SongDetailScreen(
                     }
                 },
                 actions = {
-                    uiState.song?.let { song ->
-                        IconButton(onClick = { onNavigateToTagEditor(song.id) }) {
-                            Icon(
-                                imageVector = Icons.Default.Edit,
-                                contentDescription = "编辑标签"
-                            )
+                    if (uiState.isEditMode) {
+                        IconButton(
+                            onClick = { viewModel.handleIntent(SongDetailIntent.SaveChanges) },
+                            enabled = uiState.hasChanges && !uiState.isSaving
+                        ) {
+                            if (uiState.isSaving) {
+                                CircularProgressIndicator(
+                                    modifier = Modifier.size(24.dp),
+                                    color = MaterialTheme.colorScheme.primary,
+                                    strokeWidth = 2.dp
+                                )
+                            } else {
+                                Icon(
+                                    imageVector = Icons.Default.Check,
+                                    contentDescription = "保存",
+                                    tint = if (uiState.hasChanges) MaterialTheme.colorScheme.primary
+                                    else MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                        }
+                    } else {
+                        uiState.song?.let {
+                            IconButton(onClick = { viewModel.handleIntent(SongDetailIntent.EnterEditMode) }) {
+                                Icon(
+                                    imageVector = Icons.Default.Edit,
+                                    contentDescription = "编辑"
+                                )
+                            }
                         }
                     }
                 }
@@ -137,24 +184,232 @@ fun SongDetailScreen(
                         .padding(paddingValues)
                         .verticalScroll(rememberScrollState())
                 ) {
-                    SongHeader(song = song)
-
-                    Spacer(modifier = Modifier.height(24.dp))
-
-                    ActionButtons(
-                        isFavorite = uiState.isFavorite,
-                        onPlay = { viewModel.handleIntent(SongDetailIntent.PlaySong) },
-                        onFavorite = { viewModel.handleIntent(SongDetailIntent.ToggleFavorite) },
-                        onAddToPlaylist = { viewModel.handleIntent(SongDetailIntent.AddToPlaylist) }
-                    )
-
-                    Spacer(modifier = Modifier.height(24.dp))
-
-                    SongInfoSection(song = song, audioMetadata = uiState.audioMetadata)
+                    if (uiState.isEditMode) {
+                        EditModeContent(
+                            song = song,
+                            uiState = uiState,
+                            onTitleChange = { viewModel.handleIntent(SongDetailIntent.UpdateTitle(it)) },
+                            onArtistChange = { viewModel.handleIntent(SongDetailIntent.UpdateArtist(it)) },
+                            onAlbumChange = { viewModel.handleIntent(SongDetailIntent.UpdateAlbum(it)) },
+                            onYearChange = { viewModel.handleIntent(SongDetailIntent.UpdateYear(it)) },
+                            onGenreChange = { viewModel.handleIntent(SongDetailIntent.UpdateGenre(it)) },
+                            onSave = { viewModel.handleIntent(SongDetailIntent.SaveChanges) },
+                            onCancel = { viewModel.handleIntent(SongDetailIntent.ExitEditMode) }
+                        )
+                    } else {
+                        ViewModeContent(
+                            song = song,
+                            uiState = uiState,
+                            onPlay = { viewModel.handleIntent(SongDetailIntent.PlaySong) },
+                            onFavorite = { viewModel.handleIntent(SongDetailIntent.ToggleFavorite) },
+                            onAddToPlaylist = { viewModel.handleIntent(SongDetailIntent.AddToPlaylist) }
+                        )
+                    }
                 }
             }
         }
     }
+}
+
+@Composable
+private fun ViewModeContent(
+    song: Song,
+    uiState: SongDetailUiState,
+    onPlay: () -> Unit,
+    onFavorite: () -> Unit,
+    onAddToPlaylist: () -> Unit
+) {
+    SongHeader(song = song)
+
+    Spacer(modifier = Modifier.height(24.dp))
+
+    ActionButtons(
+        isFavorite = uiState.isFavorite,
+        onPlay = onPlay,
+        onFavorite = onFavorite,
+        onAddToPlaylist = onAddToPlaylist
+    )
+
+    Spacer(modifier = Modifier.height(24.dp))
+
+    SongInfoSection(song = song, audioMetadata = uiState.audioMetadata)
+}
+
+@Composable
+private fun EditModeContent(
+    song: Song,
+    uiState: SongDetailUiState,
+    onTitleChange: (String) -> Unit,
+    onArtistChange: (String) -> Unit,
+    onAlbumChange: (String) -> Unit,
+    onYearChange: (String) -> Unit,
+    onGenreChange: (String) -> Unit,
+    onSave: () -> Unit,
+    onCancel: () -> Unit
+) {
+    Column(
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Box(
+            modifier = Modifier
+                .size(180.dp)
+                .align(Alignment.CenterHorizontally)
+                .padding(top = 16.dp)
+                .clip(RoundedCornerShape(12.dp)),
+            contentAlignment = Alignment.Center
+        ) {
+            if (song.albumArt != null) {
+                AsyncImage(
+                    model = song.albumArt,
+                    contentDescription = null,
+                    modifier = Modifier.fillMaxSize(),
+                    contentScale = ContentScale.Crop
+                )
+            } else {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(MaterialTheme.colorScheme.surfaceVariant),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.MusicNote,
+                        contentDescription = null,
+                        modifier = Modifier.size(80.dp),
+                        tint = SonicColors.Red
+                    )
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp)
+        ) {
+            EditTextField(
+                label = "标题",
+                value = uiState.editedTitle,
+                onValueChange = onTitleChange,
+                placeholder = "输入标题"
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            EditTextField(
+                label = "艺术家",
+                value = uiState.editedArtist,
+                onValueChange = onArtistChange,
+                placeholder = "输入艺术家"
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            EditTextField(
+                label = "专辑",
+                value = uiState.editedAlbum,
+                onValueChange = onAlbumChange,
+                placeholder = "输入专辑"
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            EditTextField(
+                label = "年份",
+                value = uiState.editedYear,
+                onValueChange = onYearChange,
+                placeholder = "输入年份",
+                keyboardType = KeyboardType.Number
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            EditTextField(
+                label = "流派",
+                value = uiState.editedGenre,
+                onValueChange = onGenreChange,
+                placeholder = "输入流派"
+            )
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            IOSFilledButton(
+                text = if (uiState.isSaving) "保存中..." else "保存",
+                onClick = onSave,
+                modifier = Modifier.fillMaxWidth(),
+                backgroundColor = if (uiState.hasChanges && !uiState.isSaving) MaterialTheme.colorScheme.primary
+                else MaterialTheme.colorScheme.surfaceVariant
+            )
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            TextButton(
+                onClick = onCancel,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text(
+                    text = "取消",
+                    style = MaterialTheme.typography.labelLarge,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+
+            Spacer(modifier = Modifier.height(32.dp))
+        }
+    }
+}
+
+@Composable
+private fun EditTextField(
+    label: String,
+    value: String,
+    onValueChange: (String) -> Unit,
+    placeholder: String,
+    keyboardType: KeyboardType = KeyboardType.Text
+) {
+    OutlinedTextField(
+        value = value,
+        onValueChange = onValueChange,
+        label = { Text(text = label) },
+        placeholder = { Text(text = placeholder) },
+        modifier = Modifier.fillMaxWidth(),
+        keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
+        singleLine = true,
+        colors = OutlinedTextFieldDefaults.colors(
+            focusedBorderColor = MaterialTheme.colorScheme.primary,
+            unfocusedBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.5f),
+            focusedLabelColor = MaterialTheme.colorScheme.primary,
+            cursorColor = MaterialTheme.colorScheme.primary
+        ),
+        shape = RoundedCornerShape(12.dp)
+    )
+}
+
+@Composable
+private fun DiscardChangesDialog(
+    onDiscard: () -> Unit,
+    onKeepEditing: () -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onKeepEditing,
+        title = { Text(text = "放弃更改") },
+        text = { Text(text = "您有未保存的更改，确定要放弃吗？") },
+        confirmButton = {
+            TextButton(onClick = onDiscard) {
+                Text(
+                    text = "放弃",
+                    color = SonicColors.Red
+                )
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onKeepEditing) {
+                Text(text = "继续编辑")
+            }
+        }
+    )
 }
 
 @Composable

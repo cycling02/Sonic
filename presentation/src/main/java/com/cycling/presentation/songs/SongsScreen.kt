@@ -155,6 +155,14 @@ fun SongsScreen(
                         onClick = { viewModel.handleIntent(SongsIntent.SongClick(song)) },
                         moreMenuItems = listOf(
                             MenuItem(
+                                name = "下一首播放",
+                                onClick = {
+                                    playerViewModel.handleIntent(
+                                        com.cycling.presentation.player.PlayerIntent.PlayNext(song)
+                                    )
+                                }
+                            ),
+                            MenuItem(
                                 name = "查看详情",
                                 onClick = {
                                     onNavigateToSongDetail(song.id)

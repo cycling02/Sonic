@@ -352,6 +352,49 @@ class PlayerManager @Inject constructor(
         _playerState.update { it.copy(playbackQueue = playbackQueue.toList()) }
     }
 
+    fun playNext(song: Song) {
+        Timber.d("playNext: ${song.title}, currentIndex=$currentIndex")
+        
+        if (playbackQueue.isEmpty() || currentIndex < 0) {
+            playSong(song)
+            return
+        }
+        
+        val insertIndex = currentIndex + 1
+        playbackQueue.add(insertIndex, song)
+        
+        _playerState.update { it.copy(playbackQueue = playbackQueue.toList()) }
+    }
+
+    fun moveQueueItem(fromIndex: Int, toIndex: Int) {
+        if (fromIndex !in playbackQueue.indices || toIndex !in playbackQueue.indices) return
+        if (fromIndex == toIndex) return
+        
+        Timber.d("moveQueueItem: from=$fromIndex to=$toIndex, currentIndex=$currentIndex")
+        
+        val song = playbackQueue.removeAt(fromIndex)
+        playbackQueue.add(toIndex, song)
+        
+        when {
+            currentIndex == fromIndex -> {
+                currentIndex = toIndex
+            }
+            fromIndex < currentIndex && toIndex >= currentIndex -> {
+                currentIndex--
+            }
+            fromIndex > currentIndex && toIndex <= currentIndex -> {
+                currentIndex++
+            }
+        }
+        
+        _playerState.update { 
+            it.copy(
+                playbackQueue = playbackQueue.toList(),
+                queueIndex = currentIndex
+            )
+        }
+    }
+
     fun removeFromQueue(index: Int) {
         if (index !in playbackQueue.indices) return
 

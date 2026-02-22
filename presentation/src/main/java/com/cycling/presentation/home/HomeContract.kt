@@ -25,11 +25,9 @@ sealed interface HomeIntent {
     data object NavigateToArtists : HomeIntent
     data object NavigateToPlaylists : HomeIntent
     data object NavigateToSettings : HomeIntent
-    data object NavigateToScan : HomeIntent
-    data object NavigateToFavorites : HomeIntent
-    data object NavigateToRecentlyPlayed : HomeIntent
-    data object NavigateToMostPlayed : HomeIntent
+    data object NavigateToMyMusic : HomeIntent
     data object NavigateToSearch : HomeIntent
+    data object NavigateToFolders : HomeIntent
     data object PlayPause : HomeIntent
     data object MiniPlayerClick : HomeIntent
 }
@@ -44,9 +42,7 @@ sealed interface HomeEffect {
     data object NavigateToArtists : HomeEffect
     data object NavigateToPlaylists : HomeEffect
     data object NavigateToSettings : HomeEffect
-    data object NavigateToScan : HomeEffect
-    data object NavigateToFavorites : HomeEffect
-    data object NavigateToRecentlyPlayed : HomeEffect
-    data object NavigateToMostPlayed : HomeEffect
+    data object NavigateToMyMusic : HomeEffect
     data object NavigateToSearch : HomeEffect
+    data object NavigateToFolders : HomeEffect
 }

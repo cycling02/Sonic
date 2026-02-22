@@ -12,6 +12,7 @@ import androidx.compose.material.icons.automirrored.filled.QueueMusic
 import androidx.compose.material.icons.automirrored.filled.TrendingUp
 import androidx.compose.material.icons.filled.Album
 import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.Folder
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.MusicNote
 import androidx.compose.material.icons.filled.Person
@@ -45,14 +46,12 @@ fun HomeScreen(
     onNavigateToArtists: () -> Unit,
     onNavigateToPlaylists: () -> Unit,
     onNavigateToSettings: () -> Unit,
-    onNavigateToScan: () -> Unit,
     onNavigateToAlbumDetail: (Long) -> Unit,
     onNavigateToArtistDetail: (Long) -> Unit,
     onNavigateToPlayer: (Long) -> Unit,
-    onNavigateToFavorites: () -> Unit,
-    onNavigateToRecentlyPlayed: () -> Unit,
-    onNavigateToMostPlayed: () -> Unit,
+    onNavigateToMyMusic: () -> Unit,
     onNavigateToSearch: () -> Unit,
+    onNavigateToFolders: () -> Unit = {},
     bottomPadding: Dp = 0.dp
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -69,14 +68,12 @@ fun HomeScreen(
                 is HomeEffect.NavigateToArtists -> onNavigateToArtists()
                 is HomeEffect.NavigateToPlaylists -> onNavigateToPlaylists()
                 is HomeEffect.NavigateToSettings -> onNavigateToSettings()
-                is HomeEffect.NavigateToScan -> onNavigateToScan()
                 is HomeEffect.NavigateToAlbumDetail -> onNavigateToAlbumDetail(effect.albumId)
                 is HomeEffect.NavigateToArtistDetail -> onNavigateToArtistDetail(effect.artistId)
                 is HomeEffect.NavigateToPlayer -> onNavigateToPlayer(effect.songId)
-                is HomeEffect.NavigateToFavorites -> onNavigateToFavorites()
-                is HomeEffect.NavigateToRecentlyPlayed -> onNavigateToRecentlyPlayed()
-                is HomeEffect.NavigateToMostPlayed -> onNavigateToMostPlayed()
+                is HomeEffect.NavigateToMyMusic -> onNavigateToMyMusic()
                 is HomeEffect.NavigateToSearch -> onNavigateToSearch()
+                is HomeEffect.NavigateToFolders -> onNavigateToFolders()
                 is HomeEffect.ShowToast -> {}
             }
         }
@@ -136,9 +133,8 @@ fun HomeScreen(
                     onAlbumsClick = { viewModel.handleIntent(HomeIntent.NavigateToAlbums) },
                     onArtistsClick = { viewModel.handleIntent(HomeIntent.NavigateToArtists) },
                     onPlaylistsClick = { viewModel.handleIntent(HomeIntent.NavigateToPlaylists) },
-                    onFavoritesClick = { viewModel.handleIntent(HomeIntent.NavigateToFavorites) },
-                    onRecentlyPlayedClick = { viewModel.handleIntent(HomeIntent.NavigateToRecentlyPlayed) },
-                    onMostPlayedClick = { viewModel.handleIntent(HomeIntent.NavigateToMostPlayed) }
+                    onMyMusicClick = { viewModel.handleIntent(HomeIntent.NavigateToMyMusic) },
+                    onFoldersClick = { viewModel.handleIntent(HomeIntent.NavigateToFolders) }
                 )
             }
 
@@ -155,9 +151,8 @@ private fun QuickAccessSection(
     onAlbumsClick: () -> Unit,
     onArtistsClick: () -> Unit,
     onPlaylistsClick: () -> Unit,
-    onFavoritesClick: () -> Unit,
-    onRecentlyPlayedClick: () -> Unit,
-    onMostPlayedClick: () -> Unit
+    onMyMusicClick: () -> Unit,
+    onFoldersClick: () -> Unit
 ) {
     IOSInsetGrouped {
         IOSListItem(
@@ -189,24 +184,18 @@ private fun QuickAccessSection(
             showDivider = true
         )
         IOSListItem(
-            title = "喜欢的歌曲",
+            title = "文件夹",
+            icon = Icons.Default.Folder,
+            iconBackgroundColor = SonicColors.Indigo,
+            onClick = onFoldersClick,
+            showDivider = true
+        )
+        IOSListItem(
+            title = "我的音乐",
+            subtitle = "喜欢、最近播放、最常播放",
             icon = Icons.Default.Favorite,
             iconBackgroundColor = SonicColors.Pink,
-            onClick = onFavoritesClick,
-            showDivider = true
-        )
-        IOSListItem(
-            title = "最近播放",
-            icon = Icons.Default.History,
-            iconBackgroundColor = SonicColors.Orange,
-            onClick = onRecentlyPlayedClick,
-            showDivider = true
-        )
-        IOSListItem(
-            title = "最常播放",
-            icon = Icons.AutoMirrored.Filled.TrendingUp,
-            iconBackgroundColor = SonicColors.Purple,
-            onClick = onMostPlayedClick,
+            onClick = onMyMusicClick,
             showDivider = false
         )
     }

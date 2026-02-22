@@ -57,6 +57,16 @@ class PlayerRepositoryImpl @Inject constructor(
         playerManager.addToQueue(song)
     }
 
+    override fun playNext(song: Song) {
+        Timber.d("PlayerRepository.playNext: ${song.title}")
+        playerManager.playNext(song)
+    }
+
+    override fun moveQueueItem(fromIndex: Int, toIndex: Int) {
+        Timber.d("PlayerRepository.moveQueueItem: from=$fromIndex to=$toIndex")
+        playerManager.moveQueueItem(fromIndex, toIndex)
+    }
+
     override fun removeFromQueue(index: Int) {
         Timber.d("PlayerRepository.removeFromQueue: index=$index")
         playerManager.removeFromQueue(index)

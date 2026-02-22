@@ -1,5 +1,6 @@
 package com.cycling.domain.repository
 
+import com.cycling.domain.model.FolderContent
 import com.cycling.domain.model.LibraryStats
 import com.cycling.domain.model.Song
 import kotlinx.coroutines.flow.Flow
@@ -34,4 +35,6 @@ interface SongRepository {
     suspend fun getLibraryStats(): LibraryStats
 
     suspend fun updateSongInfo(songId: Long, title: String?, artist: String?, album: String?): Boolean
+
+    suspend fun getFolderContent(path: String): FolderContent
 }

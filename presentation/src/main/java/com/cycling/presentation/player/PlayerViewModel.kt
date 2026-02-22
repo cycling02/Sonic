@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.cycling.domain.model.RepeatMode
 import com.cycling.domain.repository.PlayerRepository
 import com.cycling.domain.repository.SongRepository
+import com.cycling.domain.usecase.GetLyricsUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -20,7 +21,8 @@ import javax.inject.Inject
 @HiltViewModel
 class PlayerViewModel @Inject constructor(
     private val playerRepository: PlayerRepository,
-    private val songRepository: SongRepository
+    private val songRepository: SongRepository,
+    private val getLyricsUseCase: GetLyricsUseCase
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(PlayerUiState())
@@ -36,11 +38,38 @@ class PlayerViewModel @Inject constructor(
     private fun observePlayerState() {
         viewModelScope.launch {
             playerRepository.playerState.collect { state ->
+                val currentSong = state.currentSong
                 _uiState.update { 
                     state.toUiState().copy(
-                        isFavorite = state.currentSong?.isFavorite ?: false
+                        isFavorite = currentSong?.isFavorite ?: false
                     )
                 }
+                
+                if (currentSong != null) {
+                    val currentLyricsSongPath = _uiState.value.lyrics?.let { 
+                        _uiState.value.currentSong?.path 
+                    }
+                    if (currentLyricsSongPath != currentSong.path) {
+                        loadLyrics(currentSong.path)
+                    }
+                }
+            }
+        }
+    }
+
+    private fun loadLyrics(songPath: String) {
+        viewModelScope.launch {
+            _uiState.update { it.copy(isLoadingLyrics = true) }
+            
+            val result = getLyricsUseCase(songPath)
+            val syncedLyrics = result.syncedLyrics
+            
+            _uiState.update {
+                it.copy(
+                    lyrics = syncedLyrics,
+                    isLoadingLyrics = false,
+                    hasLyrics = syncedLyrics != null && syncedLyrics.lines.isNotEmpty()
+                )
             }
         }
     }
@@ -83,6 +112,14 @@ class PlayerViewModel @Inject constructor(
                 Timber.d("handleIntent: AddToQueue - ${intent.song.title}")
                 addToQueue(intent.song)
             }
+            is PlayerIntent.PlayNext -> {
+                Timber.d("handleIntent: PlayNext - ${intent.song.title}")
+                playNext(intent.song)
+            }
+            is PlayerIntent.MoveQueueItem -> {
+                Timber.d("handleIntent: MoveQueueItem - from=${intent.fromIndex} to=${intent.toIndex}")
+                moveQueueItem(intent.fromIndex, intent.toIndex)
+            }
             is PlayerIntent.RemoveFromQueue -> {
                 Timber.d("handleIntent: RemoveFromQueue - index=${intent.index}")
                 removeFromQueue(intent.index)
@@ -99,6 +136,10 @@ class PlayerViewModel @Inject constructor(
             is PlayerIntent.ToggleFavorite -> {
                 Timber.d("handleIntent: ToggleFavorite")
                 toggleFavorite()
+            }
+            is PlayerIntent.ToggleViewMode -> {
+                Timber.d("handleIntent: ToggleViewMode")
+                toggleViewMode()
             }
         }
     }
@@ -152,6 +193,17 @@ class PlayerViewModel @Inject constructor(
         }
     }
 
+    private fun playNext(song: com.cycling.domain.model.Song) {
+        playerRepository.playNext(song)
+        viewModelScope.launch {
+            _uiEffect.emit(PlayerEffect.ShowToast("已设为下一首播放"))
+        }
+    }
+
+    private fun moveQueueItem(fromIndex: Int, toIndex: Int) {
+        playerRepository.moveQueueItem(fromIndex, toIndex)
+    }
+
     private fun removeFromQueue(index: Int) {
         playerRepository.removeFromQueue(index)
     }
@@ -171,6 +223,16 @@ class PlayerViewModel @Inject constructor(
             _uiState.update { it.copy(isFavorite = newFavoriteStatus) }
             val message = if (newFavoriteStatus) "已添加到喜欢" else "已从喜欢移除"
             _uiEffect.emit(PlayerEffect.ShowToast(message))
+        }
+    }
+
+    private fun toggleViewMode() {
+        _uiState.update { state ->
+            val newViewMode = when (state.viewMode) {
+                PlayerViewMode.COVER -> PlayerViewMode.LYRICS
+                PlayerViewMode.LYRICS -> PlayerViewMode.COVER
+            }
+            state.copy(viewMode = newViewMode)
         }
     }
 }

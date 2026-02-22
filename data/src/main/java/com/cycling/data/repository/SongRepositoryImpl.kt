@@ -4,6 +4,8 @@ import com.cycling.data.local.dao.SongDao
 import com.cycling.data.local.mediastore.MediaStoreHelper
 import com.cycling.data.mapper.toDomain
 import com.cycling.data.mapper.toEntity
+import com.cycling.domain.model.FolderContent
+import com.cycling.domain.model.FolderItem
 import com.cycling.domain.model.LibraryStats
 import com.cycling.domain.model.Song
 import com.cycling.domain.repository.SongRepository
@@ -151,5 +153,69 @@ class SongRepositoryImpl @Inject constructor(
         songDao.updateSongInfo(songId, updatedTitle, updatedArtist, updatedAlbum)
         Timber.i("updateSongInfo: successfully updated song info for songId=$songId")
         return true
+    }
+
+    override suspend fun getFolderContent(path: String): FolderContent = withContext(Dispatchers.IO) {
+        Timber.d("getFolderContent: path=$path")
+        
+        val allPaths = songDao.getAllSongPaths()
+        val normalizedPath = path.trimEnd('/')
+        
+        val folders = mutableMapOf<String, Int>()
+        
+        allPaths.forEach { songPath ->
+            if (songPath.startsWith(normalizedPath)) {
+                val relativePath = if (normalizedPath.isEmpty()) {
+                    songPath
+                } else {
+                    songPath.removePrefix("$normalizedPath/")
+                }
+                
+                val parts = relativePath.split("/")
+                if (parts.size > 1) {
+                    val folderName = parts[0]
+                    val folderPath = if (normalizedPath.isEmpty()) folderName else "$normalizedPath/$folderName"
+                    folders[folderPath] = (folders[folderPath] ?: 0) + 1
+                }
+            }
+        }
+        
+        val folderItems = folders.map { (folderPath, count) ->
+            val name = folderPath.substringAfterLast("/")
+            FolderItem(
+                name = name,
+                path = folderPath,
+                songCount = count
+            )
+        }.sortedBy { it.name.lowercase() }
+        
+        val songs = if (normalizedPath.isEmpty()) {
+            emptyList()
+        } else {
+            songDao.getSongsByPathPrefix("$normalizedPath/")
+                .filter { songEntity ->
+                    val relativePath = songEntity.path.removePrefix("$normalizedPath/")
+                    !relativePath.contains("/")
+                }
+                .map { it.toDomain() }
+        }
+        
+        val parentPath = if (normalizedPath.isEmpty()) null else {
+            val parts = normalizedPath.split("/")
+            if (parts.size > 1) {
+                parts.dropLast(1).joinToString("/")
+            } else {
+                ""
+            }
+        }
+        
+        Timber.d("getFolderContent: found ${folderItems.size} folders, ${songs.size} songs")
+        
+        FolderContent(
+            folders = folderItems,
+            songs = songs,
+            currentPath = normalizedPath,
+            parentPath = parentPath
+        )
     }
 }

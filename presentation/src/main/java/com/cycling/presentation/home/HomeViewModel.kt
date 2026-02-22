@@ -90,25 +90,17 @@ class HomeViewModel @Inject constructor(
                 Timber.d("handleIntent: NavigateToSettings")
                 navigateTo(HomeEffect.NavigateToSettings)
             }
-            is HomeIntent.NavigateToScan -> {
-                Timber.d("handleIntent: NavigateToScan")
-                navigateTo(HomeEffect.NavigateToScan)
-            }
-            is HomeIntent.NavigateToFavorites -> {
-                Timber.d("handleIntent: NavigateToFavorites")
-                navigateTo(HomeEffect.NavigateToFavorites)
-            }
-            is HomeIntent.NavigateToRecentlyPlayed -> {
-                Timber.d("handleIntent: NavigateToRecentlyPlayed")
-                navigateTo(HomeEffect.NavigateToRecentlyPlayed)
-            }
-            is HomeIntent.NavigateToMostPlayed -> {
-                Timber.d("handleIntent: NavigateToMostPlayed")
-                navigateTo(HomeEffect.NavigateToMostPlayed)
+            is HomeIntent.NavigateToMyMusic -> {
+                Timber.d("handleIntent: NavigateToMyMusic")
+                navigateTo(HomeEffect.NavigateToMyMusic)
             }
             is HomeIntent.NavigateToSearch -> {
                 Timber.d("handleIntent: NavigateToSearch")
                 navigateTo(HomeEffect.NavigateToSearch)
+            }
+            is HomeIntent.NavigateToFolders -> {
+                Timber.d("handleIntent: NavigateToFolders")
+                navigateTo(HomeEffect.NavigateToFolders)
             }
             is HomeIntent.PlayPause -> {
                 Timber.d("handleIntent: PlayPause")

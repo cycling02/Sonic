@@ -24,6 +24,10 @@ interface PlayerRepository {
     
     fun addToQueue(song: Song)
     
+    fun playNext(song: Song)
+    
+    fun moveQueueItem(fromIndex: Int, toIndex: Int)
+    
     fun removeFromQueue(index: Int)
     
     fun clearQueue()

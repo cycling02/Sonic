@@ -94,4 +94,10 @@ interface SongDao {
         FROM songs
     """)
     suspend fun getLibraryStats(): LibraryStatsEntity
+
+    @Query("SELECT path FROM songs")
+    suspend fun getAllSongPaths(): List<String>
+
+    @Query("SELECT * FROM songs WHERE path LIKE :pathPrefix || '%' ORDER BY title ASC")
+    suspend fun getSongsByPathPrefix(pathPrefix: String): List<SongEntity>
 }

@@ -17,12 +17,6 @@ sealed interface Screen {
     data object Player : Screen
 
     @Serializable
-    data object Lyrics : Screen
-
-    @Serializable
-    data class TagEditor(val songId: Long) : Screen
-
-    @Serializable
     data class AiInfo(val type: String, val name: String, val artist: String = "") : Screen
 }
 
@@ -40,13 +34,10 @@ sealed interface LibraryDestination : Screen {
     data object Playlists : LibraryDestination
 
     @Serializable
-    data object Favorites : LibraryDestination
+    data object MyMusic : LibraryDestination
 
     @Serializable
-    data object RecentlyPlayed : LibraryDestination
-
-    @Serializable
-    data object MostPlayed : LibraryDestination
+    data object Folders : LibraryDestination
 
     @Serializable
     data class AlbumDetail(val albumId: Long) : LibraryDestination
@@ -61,18 +52,6 @@ sealed interface LibraryDestination : Screen {
 sealed interface SettingsDestination : Screen {
     @Serializable
     data object Main : SettingsDestination
-
-    @Serializable
-    data object ExcludeFolders : SettingsDestination
-
-    @Serializable
-    data object Scan : SettingsDestination
-
-    @Serializable
-    data object ApiKeyConfig : SettingsDestination
-
-    @Serializable
-    data object LibraryStats : SettingsDestination
 }
 
 sealed interface NavGraph : Screen {
