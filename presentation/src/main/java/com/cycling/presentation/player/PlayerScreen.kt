@@ -1,10 +1,15 @@
 package com.cycling.presentation.player
 
 import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectDragGesturesAfterLongPress
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -23,6 +28,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.List
@@ -60,10 +66,9 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
-import androidx.compose.animation.Crossfade
-import androidx.compose.animation.core.tween
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.BlurEffect
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -77,12 +82,14 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import coil3.compose.AsyncImage
+import com.cycling.core.ui.theme.M3ComponentSize
+import com.cycling.core.ui.theme.M3Motion
+import com.cycling.core.ui.theme.M3Shapes
+import com.cycling.core.ui.theme.M3Spacing
 import com.cycling.domain.model.RepeatMode
 import com.cycling.domain.model.Song
 import com.cycling.presentation.components.formatDuration
 import com.cycling.presentation.lyrics.components.KaraokeLyricsView
-import com.cycling.presentation.theme.DesignTokens
-import com.cycling.presentation.theme.SonicColors
 import kotlin.math.roundToInt
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
@@ -91,7 +98,8 @@ fun PlayerScreen(
     uiState: PlayerUiState,
     onIntent: (PlayerIntent) -> Unit,
     onNavigateBack: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    accentColor: Color = MaterialTheme.colorScheme.primary
 ) {
     var showQueue by remember { mutableStateOf(false) }
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
@@ -110,257 +118,285 @@ fun PlayerScreen(
                 .statusBarsPadding()
                 .navigationBarsPadding()
         ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = DesignTokens.Spacing.sm),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            IconButton(onClick = onNavigateBack) {
-                Icon(
-                    imageVector = Icons.Default.KeyboardArrowDown,
-                    contentDescription = "关闭",
-                    modifier = Modifier.size(32.dp)
-                )
-            }
-
-            Column(
-                modifier = Modifier.weight(1f),
-                horizontalAlignment = Alignment.CenterHorizontally
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = M3Spacing.small),
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(
-                    text = "正在播放",
-                    style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-                if (currentSong != null) {
-                    Text(
-                        text = currentSong.title,
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurface,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
+                IconButton(onClick = onNavigateBack) {
+                    Icon(
+                        imageVector = Icons.Default.KeyboardArrowDown,
+                        contentDescription = "关闭",
+                        modifier = Modifier.size(32.dp)
                     )
                 }
-            }
 
-            IconButton(onClick = { showQueue = true }) {
-                Icon(
-                    imageVector = Icons.AutoMirrored.Filled.List,
-                    contentDescription = "播放队列"
-                )
-            }
-            IconButton(onClick = { onIntent(PlayerIntent.ToggleViewMode) }) {
-                Icon(
-                    imageVector = Icons.Default.Lyrics,
-                    contentDescription = "歌词",
-                    tint = if (uiState.viewMode == PlayerViewMode.LYRICS) SonicColors.Red else MaterialTheme.colorScheme.onSurface
-                )
-            }
-        }
-
-        Spacer(modifier = Modifier.height(DesignTokens.Spacing.xl))
-
-        Crossfade(
-            targetState = uiState.viewMode,
-            animationSpec = tween(durationMillis = 300),
-            label = "view_mode_crossfade",
-            modifier = Modifier
-                .fillMaxWidth()
-                .weight(1f)
-                .padding(horizontal = DesignTokens.Spacing.xl)
-        ) { viewMode ->
-            when (viewMode) {
-                PlayerViewMode.COVER -> {
-                    CoverView(
-                        currentSong = currentSong,
-                        modifier = Modifier.fillMaxSize()
-                    )
-                }
-                PlayerViewMode.LYRICS -> {
-                    LyricsView(
-                        lyrics = uiState.lyrics,
-                        hasLyrics = uiState.hasLyrics,
-                        isLoading = uiState.isLoadingLyrics,
-                        playbackPosition = uiState.playbackPosition,
-                        onSeekTo = { position -> onIntent(PlayerIntent.SeekTo(position)) },
-                        modifier = Modifier.fillMaxSize()
-                    )
-                }
-            }
-        }
-
-        Spacer(modifier = Modifier.height(DesignTokens.Spacing.lg))
-
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = DesignTokens.Spacing.xl)
-        ) {
-            if (currentSong != null) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.Center,
-                    verticalAlignment = Alignment.CenterVertically
+                Column(
+                    modifier = Modifier.weight(1f),
+                    horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     Text(
-                        text = currentSong.title,
-                        style = MaterialTheme.typography.headlineSmall,
-                        color = MaterialTheme.colorScheme.onSurface,
-                        maxLines = 2,
-                        overflow = TextOverflow.Ellipsis,
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier.weight(1f)
+                        text = "正在播放",
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
-                    IconButton(
-                        onClick = { onIntent(PlayerIntent.ToggleFavorite) },
-                        modifier = Modifier.size(48.dp)
-                    ) {
-                        Icon(
-                            imageVector = if (uiState.isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
-                            contentDescription = if (uiState.isFavorite) "取消收藏" else "收藏",
-                            tint = if (uiState.isFavorite) SonicColors.Red else MaterialTheme.colorScheme.onSurfaceVariant
+                    if (currentSong != null) {
+                        Text(
+                            text = currentSong.title,
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurface,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
                         )
                     }
                 }
-                Spacer(modifier = Modifier.height(DesignTokens.Spacing.xs))
-                Text(
-                    text = currentSong.artist,
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier.fillMaxWidth()
-                )
+
+                IconButton(onClick = { showQueue = true }) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.List,
+                        contentDescription = "播放队列"
+                    )
+                }
+                IconButton(onClick = { onIntent(PlayerIntent.ToggleViewMode) }) {
+                    Icon(
+                        imageVector = Icons.Default.Lyrics,
+                        contentDescription = "歌词",
+                        tint = if (uiState.viewMode == PlayerViewMode.LYRICS) accentColor else MaterialTheme.colorScheme.onSurface
+                    )
+                }
             }
-        }
 
-        Spacer(modifier = Modifier.height(DesignTokens.Spacing.lg))
+            Spacer(modifier = Modifier.height(M3Spacing.extraLarge))
 
-        Column(
-            modifier = Modifier.padding(horizontal = DesignTokens.Spacing.md)
-        ) {
-            Slider(
-                value = sliderValue ?: uiState.playbackPosition.toFloat(),
-                onValueChange = { sliderValue = it },
-                onValueChangeFinished = {
-                    sliderValue?.let { value ->
-                        onIntent(PlayerIntent.SeekTo(value.toLong()))
-                        sliderValue = null
+            androidx.compose.animation.Crossfade(
+                targetState = uiState.viewMode,
+                animationSpec = tween(durationMillis = 300),
+                label = "view_mode_crossfade",
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f)
+                    .padding(horizontal = M3Spacing.extraLarge)
+            ) { viewMode ->
+                when (viewMode) {
+                    PlayerViewMode.COVER -> {
+                        CoverView(
+                            currentSong = currentSong,
+                            accentColor = accentColor,
+                            modifier = Modifier.fillMaxSize()
+                        )
                     }
-                },
-                valueRange = 0f..(if (uiState.duration > 0) uiState.duration.toFloat() else 1f),
-                modifier = Modifier.fillMaxWidth(),
-                colors = SliderDefaults.colors(
-                    thumbColor = SonicColors.Red,
-                    activeTrackColor = SonicColors.Red,
-                    inactiveTrackColor = MaterialTheme.colorScheme.surfaceVariant
+                    PlayerViewMode.LYRICS -> {
+                        LyricsView(
+                            lyrics = uiState.lyrics,
+                            hasLyrics = uiState.hasLyrics,
+                            isLoading = uiState.isLoadingLyrics,
+                            playbackPosition = uiState.playbackPosition,
+                            onSeekTo = { position -> onIntent(PlayerIntent.SeekTo(position)) },
+                            modifier = Modifier.fillMaxSize()
+                        )
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(M3Spacing.large))
+
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = M3Spacing.extraLarge)
+            ) {
+                if (currentSong != null) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.Center,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = currentSong.title,
+                            style = MaterialTheme.typography.headlineSmall,
+                            color = MaterialTheme.colorScheme.onSurface,
+                            maxLines = 2,
+                            overflow = TextOverflow.Ellipsis,
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier.weight(1f)
+                        )
+                        val favInteractionSource = remember { MutableInteractionSource() }
+                        val isFavPressed by favInteractionSource.collectIsPressedAsState()
+                        val favScale by animateFloatAsState(
+                            targetValue = if (isFavPressed) M3Motion.buttonPressScale else 1f,
+                            animationSpec = spring(
+                                dampingRatio = 0.8f,
+                                stiffness = 400f
+                            ),
+                            label = "fav_scale"
+                        )
+                        IconButton(
+                            onClick = { onIntent(PlayerIntent.ToggleFavorite) },
+                            modifier = Modifier
+                                .size(48.dp)
+                                .scale(favScale),
+                            interactionSource = favInteractionSource
+                        ) {
+                            Icon(
+                                imageVector = if (uiState.isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
+                                contentDescription = if (uiState.isFavorite) "取消收藏" else "收藏",
+                                tint = if (uiState.isFavorite) accentColor else MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
+                    Spacer(modifier = Modifier.height(M3Spacing.extraSmall))
+                    Text(
+                        text = currentSong.artist,
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(M3Spacing.large))
+
+            Column(
+                modifier = Modifier.padding(horizontal = M3Spacing.medium)
+            ) {
+                Slider(
+                    value = sliderValue ?: uiState.playbackPosition.toFloat(),
+                    onValueChange = { sliderValue = it },
+                    onValueChangeFinished = {
+                        sliderValue?.let { value ->
+                            onIntent(PlayerIntent.SeekTo(value.toLong()))
+                            sliderValue = null
+                        }
+                    },
+                    valueRange = 0f..(if (uiState.duration > 0) uiState.duration.toFloat() else 1f),
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = SliderDefaults.colors(
+                        thumbColor = accentColor,
+                        activeTrackColor = accentColor,
+                        inactiveTrackColor = MaterialTheme.colorScheme.surfaceVariant
+                    )
                 )
-            )
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text(
+                        text = formatDuration(uiState.playbackPosition),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Text(
+                        text = formatDuration(uiState.duration),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(M3Spacing.medium))
 
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
+                horizontalArrangement = Arrangement.SpaceEvenly,
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(
-                    text = formatDuration(uiState.playbackPosition),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                IconButton(
+                    onClick = { onIntent(PlayerIntent.ToggleShuffleMode) },
+                    modifier = Modifier.size(48.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Shuffle,
+                        contentDescription = "随机播放",
+                        modifier = Modifier.size(24.dp),
+                        tint = if (uiState.shuffleMode) accentColor else MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+
+                IconButton(
+                    onClick = { onIntent(PlayerIntent.SkipToPrevious) },
+                    modifier = Modifier.size(56.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.SkipPrevious,
+                        contentDescription = "上一首",
+                        modifier = Modifier.size(40.dp)
+                    )
+                }
+
+                val playInteractionSource = remember { MutableInteractionSource() }
+                val isPlayPressed by playInteractionSource.collectIsPressedAsState()
+                val playScale by animateFloatAsState(
+                    targetValue = if (isPlayPressed) M3Motion.buttonPressScale else 1f,
+                    animationSpec = spring(
+                        dampingRatio = 0.6f,
+                        stiffness = 200f
+                    ),
+                    label = "play_scale"
                 )
-                Text(
-                    text = formatDuration(uiState.duration),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
+
+                IconButton(
+                    onClick = { onIntent(PlayerIntent.PlayPause) },
+                    modifier = Modifier
+                        .size(M3ComponentSize.fabStandardSize)
+                        .scale(playScale)
+                        .background(accentColor, CircleShape),
+                    interactionSource = playInteractionSource
+                ) {
+                    Icon(
+                        imageVector = if (uiState.isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow,
+                        contentDescription = if (uiState.isPlaying) "暂停" else "播放",
+                        modifier = Modifier.size(40.dp),
+                        tint = Color.White
+                    )
+                }
+
+                IconButton(
+                    onClick = { onIntent(PlayerIntent.SkipToNext) },
+                    modifier = Modifier.size(56.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.SkipNext,
+                        contentDescription = "下一首",
+                        modifier = Modifier.size(40.dp)
+                    )
+                }
+
+                IconButton(
+                    onClick = { onIntent(PlayerIntent.ToggleRepeatMode) },
+                    modifier = Modifier.size(48.dp)
+                ) {
+                    Icon(
+                        imageVector = when (uiState.repeatMode) {
+                            RepeatMode.OFF -> Icons.Default.Repeat
+                            RepeatMode.ALL -> Icons.Default.RepeatOn
+                            RepeatMode.ONE -> Icons.Default.RepeatOneOn
+                        },
+                        contentDescription = "循环模式",
+                        modifier = Modifier.size(24.dp),
+                        tint = if (uiState.repeatMode != RepeatMode.OFF) accentColor else MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
             }
-        }
 
-        Spacer(modifier = Modifier.height(DesignTokens.Spacing.md))
-
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceEvenly,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            IconButton(
-                onClick = { onIntent(PlayerIntent.ToggleShuffleMode) },
-                modifier = Modifier.size(48.dp)
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Shuffle,
-                    contentDescription = "随机播放",
-                    modifier = Modifier.size(24.dp),
-                    tint = if (uiState.shuffleMode) SonicColors.Red else MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-
-            IconButton(
-                onClick = { onIntent(PlayerIntent.SkipToPrevious) },
-                modifier = Modifier.size(56.dp)
-            ) {
-                Icon(
-                    imageVector = Icons.Default.SkipPrevious,
-                    contentDescription = "上一首",
-                    modifier = Modifier.size(40.dp)
-                )
-            }
-
-            IconButton(
-                onClick = { onIntent(PlayerIntent.PlayPause) },
-                modifier = Modifier
-                    .size(DesignTokens.Player.playerPlayButtonSize)
-                    .background(SonicColors.Red, RoundedCornerShape(DesignTokens.Player.playerPlayButtonSize / 2))
-            ) {
-                Icon(
-                    imageVector = if (uiState.isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow,
-                    contentDescription = if (uiState.isPlaying) "暂停" else "播放",
-                    modifier = Modifier.size(40.dp),
-                    tint = Color.White
-                )
-            }
-
-            IconButton(
-                onClick = { onIntent(PlayerIntent.SkipToNext) },
-                modifier = Modifier.size(56.dp)
-            ) {
-                Icon(
-                    imageVector = Icons.Default.SkipNext,
-                    contentDescription = "下一首",
-                    modifier = Modifier.size(40.dp)
-                )
-            }
-
-            IconButton(
-                onClick = { onIntent(PlayerIntent.ToggleRepeatMode) },
-                modifier = Modifier.size(48.dp)
-            ) {
-                Icon(
-                    imageVector = when (uiState.repeatMode) {
-                        RepeatMode.OFF -> Icons.Default.Repeat
-                        RepeatMode.ALL -> Icons.Default.RepeatOn
-                        RepeatMode.ONE -> Icons.Default.RepeatOneOn
-                    },
-                    contentDescription = "循环模式",
-                    modifier = Modifier.size(24.dp),
-                    tint = if (uiState.repeatMode != RepeatMode.OFF) SonicColors.Red else MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-        }
-
-        Spacer(modifier = Modifier.height(DesignTokens.Spacing.md))
+            Spacer(modifier = Modifier.height(M3Spacing.medium))
         }
     }
 
     if (showQueue) {
         ModalBottomSheet(
             onDismissRequest = { showQueue = false },
-            sheetState = sheetState
+            sheetState = sheetState,
+            containerColor = MaterialTheme.colorScheme.surfaceContainer
         ) {
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = DesignTokens.Spacing.md)
+                    .padding(horizontal = M3Spacing.medium)
             ) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -380,7 +416,7 @@ fun PlayerScreen(
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                         if (uiState.playbackQueue.isNotEmpty()) {
-                            Spacer(modifier = Modifier.width(DesignTokens.Spacing.md))
+                            Spacer(modifier = Modifier.width(M3Spacing.medium))
                             IconButton(onClick = { onIntent(PlayerIntent.ClearQueue) }) {
                                 Icon(
                                     imageVector = Icons.Default.Delete,
@@ -392,7 +428,7 @@ fun PlayerScreen(
                     }
                 }
 
-                Spacer(modifier = Modifier.height(DesignTokens.Spacing.sm))
+                Spacer(modifier = Modifier.height(M3Spacing.small))
 
                 if (uiState.playbackQueue.isEmpty()) {
                     Box(
@@ -411,13 +447,14 @@ fun PlayerScreen(
                     DraggableQueueList(
                         queue = uiState.playbackQueue,
                         currentIndex = uiState.queueIndex,
+                        accentColor = accentColor,
                         onPlayFromQueue = { index -> onIntent(PlayerIntent.PlayFromQueue(index)) },
                         onRemoveFromQueue = { index -> onIntent(PlayerIntent.RemoveFromQueue(index)) },
                         onMoveItem = { from, to -> onIntent(PlayerIntent.MoveQueueItem(from, to)) }
                     )
                 }
 
-                Spacer(modifier = Modifier.height(DesignTokens.Spacing.md))
+                Spacer(modifier = Modifier.height(M3Spacing.medium))
             }
         }
     }
@@ -428,6 +465,7 @@ fun PlayerScreen(
 private fun DraggableQueueList(
     queue: List<Song>,
     currentIndex: Int,
+    accentColor: Color,
     onPlayFromQueue: (Int) -> Unit,
     onRemoveFromQueue: (Int) -> Unit,
     onMoveItem: (Int, Int) -> Unit
@@ -467,6 +505,7 @@ private fun DraggableQueueList(
                 QueueSongItem(
                     song = song,
                     isCurrentSong = isCurrentSong,
+                    accentColor = accentColor,
                     onClick = { onPlayFromQueue(index) },
                     onRemove = { onRemoveFromQueue(index) },
                     onDragStart = {
@@ -498,6 +537,7 @@ private fun DraggableQueueList(
 private fun QueueSongItem(
     song: Song,
     isCurrentSong: Boolean,
+    accentColor: Color,
     onClick: () -> Unit,
     onRemove: () -> Unit,
     onDragStart: () -> Unit = {},
@@ -522,8 +562,8 @@ private fun QueueSongItem(
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .background(MaterialTheme.colorScheme.errorContainer, RoundedCornerShape(DesignTokens.CornerRadius.medium))
-                    .padding(horizontal = DesignTokens.Spacing.md),
+                    .background(MaterialTheme.colorScheme.errorContainer, M3Shapes.cornerMedium)
+                    .padding(horizontal = M3Spacing.medium),
                 contentAlignment = Alignment.CenterEnd
             ) {
                 Icon(
@@ -539,9 +579,9 @@ private fun QueueSongItem(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .clip(RoundedCornerShape(DesignTokens.CornerRadius.medium))
+                .clip(M3Shapes.cornerMedium)
                 .background(
-                    if (isCurrentSong) SonicColors.Red.copy(alpha = 0.1f)
+                    if (isCurrentSong) accentColor.copy(alpha = 0.1f)
                     else MaterialTheme.colorScheme.surface
                 )
                 .clickable(onClick = onClick)
@@ -551,7 +591,7 @@ private fun QueueSongItem(
             Box(
                 modifier = Modifier
                     .size(48.dp)
-                    .clip(RoundedCornerShape(DesignTokens.CornerRadius.small))
+                    .clip(M3Shapes.cornerSmall)
                     .background(MaterialTheme.colorScheme.surfaceVariant),
                 contentAlignment = Alignment.Center
             ) {
@@ -567,7 +607,7 @@ private fun QueueSongItem(
                         imageVector = Icons.Default.MusicNote,
                         contentDescription = null,
                         modifier = Modifier.size(24.dp),
-                        tint = if (isCurrentSong) SonicColors.Red else MaterialTheme.colorScheme.onSurfaceVariant
+                        tint = if (isCurrentSong) accentColor else MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
             }
@@ -578,7 +618,7 @@ private fun QueueSongItem(
                 Text(
                     text = song.title,
                     style = MaterialTheme.typography.bodyLarge,
-                    color = if (isCurrentSong) SonicColors.Red else MaterialTheme.colorScheme.onSurface,
+                    color = if (isCurrentSong) accentColor else MaterialTheme.colorScheme.onSurface,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
@@ -595,7 +635,7 @@ private fun QueueSongItem(
                 Icon(
                     imageVector = Icons.Default.PlayArrow,
                     contentDescription = null,
-                    tint = SonicColors.Red,
+                    tint = accentColor,
                     modifier = Modifier.size(20.dp)
                 )
             }
@@ -628,7 +668,7 @@ private fun BlurredBackground(
 ) {
     val dominantColors = rememberDominantColors(albumArt)
     
-    Crossfade(
+    androidx.compose.animation.Crossfade(
         targetState = albumArt,
         animationSpec = tween(durationMillis = 500),
         label = "background_crossfade",
@@ -680,6 +720,7 @@ private fun BlurredBackground(
 @Composable
 private fun CoverView(
     currentSong: Song?,
+    accentColor: Color,
     modifier: Modifier = Modifier
 ) {
     Box(
@@ -689,8 +730,8 @@ private fun CoverView(
         if (currentSong != null) {
             Box(
                 modifier = Modifier
-                    .fillMaxWidth(DesignTokens.Player.playerArtworkWidthPercent)
-                    .clip(RoundedCornerShape(DesignTokens.CornerRadius.medium)),
+                    .fillMaxWidth(0.85f)
+                    .clip(M3Shapes.cornerLarge),
                 contentAlignment = Alignment.Center
             ) {
                 if (currentSong.albumArt != null) {
@@ -714,7 +755,7 @@ private fun CoverView(
                             imageVector = Icons.Default.MusicNote,
                             contentDescription = null,
                             modifier = Modifier.size(120.dp),
-                            tint = SonicColors.Red
+                            tint = accentColor
                         )
                     }
                 }
@@ -767,7 +808,7 @@ private fun LyricsView(
                         modifier = Modifier.size(64.dp),
                         tint = MaterialTheme.colorScheme.onSurfaceVariant
                     )
-                    Spacer(modifier = Modifier.height(DesignTokens.Spacing.md))
+                    Spacer(modifier = Modifier.height(M3Spacing.medium))
                     Text(
                         text = "暂无歌词",
                         style = MaterialTheme.typography.bodyLarge,

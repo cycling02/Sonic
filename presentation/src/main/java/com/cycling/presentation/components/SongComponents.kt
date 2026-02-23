@@ -1,5 +1,7 @@
 package com.cycling.presentation.components
 
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -33,14 +35,17 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
+import com.cycling.core.ui.components.M3FilledButton
+import com.cycling.core.ui.theme.M3ExpressiveColors
+import com.cycling.core.ui.theme.M3Motion
 import com.cycling.domain.model.Song
-import com.cycling.presentation.theme.SonicColors
 
 @Composable
 fun PlayActionButtons(
@@ -54,19 +59,20 @@ fun PlayActionButtons(
             .padding(horizontal = 16.dp, vertical = 8.dp),
         horizontalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        IOSFilledButton(
-            text = "播放全部",
+        M3FilledButton(
             onClick = onPlayAll,
             icon = Icons.Default.PlayArrow,
             modifier = Modifier.weight(1f)
-        )
-        IOSFilledButton(
-            text = "随机播放",
+        ) {
+            Text("播放全部")
+        }
+        M3FilledButton(
             onClick = onShuffle,
             icon = Icons.Default.Shuffle,
-            modifier = Modifier.weight(1f),
-            backgroundColor = SonicColors.Orange
-        )
+            modifier = Modifier.weight(1f)
+        ) {
+            Text("随机播放")
+        }
     }
     Spacer(modifier = Modifier.height(8.dp))
 }
@@ -84,14 +90,32 @@ fun SongListItem(
     onMoreDismiss: () -> Unit = {},
     moreMenuItems: List<MenuItem> = emptyList(),
     onClick: (() -> Unit)? = null,
-    trailingContent: @Composable (() -> Unit)? = null
+    trailingContent: @Composable (() -> Unit)? = null,
+    expressive: Boolean = true
 ) {
+    val interactionSource = remember { MutableInteractionSource() }
+    val isPressed by interactionSource.collectIsPressedAsState()
+    
+    val scale by animateFloatAsState(
+        targetValue = if (isPressed && onClick != null && expressive) M3Motion.buttonPressScale else 1f,
+        animationSpec = spring(
+            dampingRatio = if (expressive) 0.6f else 0.8f,
+            stiffness = if (expressive) 300f else 400f
+        ),
+        label = "scale"
+    )
+
     Row(
         modifier = modifier
             .fillMaxWidth()
+            .scale(scale)
             .then(
                 if (onClick != null) {
-                    Modifier.clickable { onClick() }
+                    Modifier.clickable(
+                        interactionSource = interactionSource,
+                        indication = null,
+                        onClick = onClick
+                    )
                 } else {
                     Modifier
                 }
@@ -102,7 +126,7 @@ fun SongListItem(
         Box(
             modifier = Modifier
                 .size(48.dp)
-                .clip(RoundedCornerShape(6.dp)),
+                .clip(RoundedCornerShape(if (expressive) 12.dp else 6.dp)),
             contentAlignment = Alignment.Center
         ) {
             if (song.albumArt != null) {
@@ -123,7 +147,7 @@ fun SongListItem(
                         imageVector = Icons.Default.MusicNote,
                         contentDescription = null,
                         modifier = Modifier.size(24.dp),
-                        tint = SonicColors.Red
+                        tint = M3ExpressiveColors.Red
                     )
                 }
             }
@@ -180,8 +204,8 @@ fun SongListItem(
                         offset = DpOffset(x = (-8).dp, y = 8.dp)
                     ) {
                         moreMenuItems.forEach { menuItem ->
-                            val interactionSource = remember { MutableInteractionSource() }
-                            val isPressed by interactionSource.collectIsPressedAsState()
+                            val itemInteractionSource = remember { MutableInteractionSource() }
+                            val isItemPressed by itemInteractionSource.collectIsPressedAsState()
 
                             DropdownMenuItem(
                                 text = {
@@ -199,10 +223,10 @@ fun SongListItem(
                                     onMoreDismiss()
                                 },
                                 modifier = Modifier.background(
-                                    if (isPressed) MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)
+                                    if (isItemPressed) MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)
                                     else Color.Transparent
                                 ),
-                                interactionSource = interactionSource
+                                interactionSource = itemInteractionSource
                             )
                         }
                     }
@@ -217,7 +241,7 @@ fun SongListItem(
                 .fillMaxWidth()
                 .padding(start = 76.dp)
                 .height(0.5.dp)
-                .background(MaterialTheme.colorScheme.outline)
+                .background(MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
         )
     }
 }

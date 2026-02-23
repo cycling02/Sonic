@@ -8,6 +8,7 @@ import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -15,9 +16,11 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
+import com.cycling.core.ui.theme.M3ManagedTheme
+import com.cycling.core.ui.theme.M3ThemeManager
+import com.cycling.domain.model.ThemeMode
 import com.cycling.presentation.navigation.AppNavGraph
 import com.cycling.presentation.player.PlayerViewModel
-import com.cycling.presentation.theme.SonicTheme
 import com.cycling.sonic.viewmodel.MainViewModel
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -31,7 +34,16 @@ class MainActivity : ComponentActivity() {
             val themeMode by viewModel.themeMode.collectAsStateWithLifecycle()
             val playerViewModel: PlayerViewModel = hiltViewModel()
 
-            SonicTheme(themeMode = themeMode) {
+            LaunchedEffect(themeMode) {
+                val darkMode = when (themeMode) {
+                    ThemeMode.DARK -> true
+                    ThemeMode.LIGHT -> false
+                    ThemeMode.SYSTEM -> null
+                }
+                M3ThemeManager.setDarkMode(darkMode)
+            }
+
+            M3ManagedTheme {
                 val navController = rememberNavController()
                 MainScreen(
                     navController = navController,

@@ -13,19 +13,24 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Album
 import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
@@ -33,13 +38,15 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil3.compose.AsyncImage
-import com.cycling.presentation.components.IOSScreenWithTopBar
+import com.cycling.core.ui.components.M3LargeTopAppBar
+import com.cycling.core.ui.theme.M3ExpressiveColors
+import com.cycling.core.ui.theme.M3Shapes
+import com.cycling.core.ui.theme.M3Spacing
 import com.cycling.presentation.components.PlayActionButtons
 import com.cycling.presentation.components.SongListItem
 import com.cycling.presentation.components.formatDuration
-import com.cycling.presentation.theme.DesignTokens
-import com.cycling.presentation.theme.SonicColors
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AlbumDetailScreen(
     onNavigateBack: () -> Unit,
@@ -50,6 +57,7 @@ fun AlbumDetailScreen(
     bottomPadding: Dp = 0.dp
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
 
     LaunchedEffect(Unit) {
         viewModel.uiEffect.collect { effect ->
@@ -59,68 +67,83 @@ fun AlbumDetailScreen(
         }
     }
 
-    IOSScreenWithTopBar(
-        title = "专辑详情",
-        onNavigateBack = onNavigateBack,
-        actions = {
-            IconButton(
-                onClick = {
-                    uiState.album?.let { album ->
-                        onNavigateToAiInfo("album", album.name, album.artist)
+    Scaffold(
+        containerColor = MaterialTheme.colorScheme.surface,
+        topBar = {
+            M3LargeTopAppBar(
+                title = "专辑详情",
+                scrollBehavior = scrollBehavior,
+                navigationIcon = Icons.AutoMirrored.Filled.ArrowBack,
+                navigationIconContentDescription = "返回",
+                onNavigationClick = onNavigateBack,
+                actions = {
+                    IconButton(
+                        onClick = {
+                            uiState.album?.let { album ->
+                                onNavigateToAiInfo("album", album.name, album.artist)
+                            }
+                        }
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.AutoAwesome,
+                            contentDescription = "AI 介绍",
+                            tint = M3ExpressiveColors.Purple
+                        )
                     }
                 }
-            ) {
-                Icon(
-                    imageVector = Icons.Default.AutoAwesome,
-                    contentDescription = "AI 介绍",
-                    tint = SonicColors.Purple
-                )
-            }
-        },
-        isLoading = uiState.isLoading,
-        loadingContent = {
+            )
+        }
+    ) { paddingValues ->
+        if (uiState.isLoading) {
             Box(
-                modifier = Modifier.fillMaxSize(),
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(paddingValues),
                 contentAlignment = Alignment.Center
             ) {
                 CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
             }
-        }
-    ) {
-        LazyColumn(modifier = Modifier.fillMaxSize()) {
-            item {
-                AlbumHeader(
-                    album = uiState.album,
-                    songCount = uiState.songs.size
-                )
-            }
+        } else {
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .nestedScroll(scrollBehavior.nestedScrollConnection)
+                    .padding(paddingValues)
+            ) {
+                item {
+                    AlbumHeader(
+                        album = uiState.album,
+                        songCount = uiState.songs.size
+                    )
+                }
 
-            item {
-                PlayActionButtons(
-                    onPlayAll = {
-                        uiState.songs.firstOrNull()?.let { song ->
-                            viewModel.handleIntent(AlbumDetailIntent.SongClick(song))
+                item {
+                    PlayActionButtons(
+                        onPlayAll = {
+                            uiState.songs.firstOrNull()?.let { song ->
+                                viewModel.handleIntent(AlbumDetailIntent.SongClick(song))
+                            }
+                        },
+                        onShuffle = {
+                            uiState.songs.randomOrNull()?.let { song ->
+                                viewModel.handleIntent(AlbumDetailIntent.SongClick(song))
+                            }
                         }
-                    },
-                    onShuffle = {
-                        uiState.songs.randomOrNull()?.let { song ->
-                            viewModel.handleIntent(AlbumDetailIntent.SongClick(song))
-                        }
-                    }
-                )
-            }
+                    )
+                }
 
-            itemsIndexed(uiState.songs) { index, song ->
-                SongListItem(
-                    song = song,
-                    showDivider = index < uiState.songs.size - 1,
-                    subtitle = formatDuration(song.duration),
-                    showDuration = false
-                )
-            }
+                itemsIndexed(uiState.songs) { index, song ->
+                    SongListItem(
+                        song = song,
+                        showDivider = index < uiState.songs.size - 1,
+                        subtitle = formatDuration(song.duration),
+                        showDuration = false
+                    )
+                }
 
-            item {
-                Spacer(modifier = Modifier.height(bottomPadding))
+                item {
+                    Spacer(modifier = Modifier.height(bottomPadding))
+                }
             }
         }
     }
@@ -134,13 +157,13 @@ private fun AlbumHeader(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(DesignTokens.Spacing.md),
+            .padding(M3Spacing.medium),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Box(
             modifier = Modifier
                 .size(200.dp)
-                .clip(RoundedCornerShape(DesignTokens.CornerRadius.large)),
+                .clip(M3Shapes.cornerLarge),
             contentAlignment = Alignment.Center
         ) {
             if (album?.albumArt != null) {
@@ -161,13 +184,13 @@ private fun AlbumHeader(
                         imageVector = Icons.Default.Album,
                         contentDescription = null,
                         modifier = Modifier.size(80.dp),
-                        tint = SonicColors.Teal
+                        tint = M3ExpressiveColors.Teal
                     )
                 }
             }
         }
 
-        Spacer(modifier = Modifier.height(DesignTokens.Spacing.md))
+        Spacer(modifier = Modifier.height(M3Spacing.medium))
 
         Text(
             text = album?.name ?: "未知专辑",
@@ -177,7 +200,7 @@ private fun AlbumHeader(
             overflow = TextOverflow.Ellipsis
         )
 
-        Spacer(modifier = Modifier.height(DesignTokens.Spacing.xs))
+        Spacer(modifier = Modifier.height(M3Spacing.extraSmall))
 
         Text(
             text = album?.artist ?: "未知歌手",
@@ -185,7 +208,7 @@ private fun AlbumHeader(
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
 
-        Spacer(modifier = Modifier.height(DesignTokens.Spacing.sm))
+        Spacer(modifier = Modifier.height(M3Spacing.small))
 
         val year = album?.firstYear ?: 0
         val yearText = if (year > 0) "$year · " else ""
@@ -195,6 +218,6 @@ private fun AlbumHeader(
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
 
-        Spacer(modifier = Modifier.height(DesignTokens.Spacing.md))
+        Spacer(modifier = Modifier.height(M3Spacing.medium))
     }
 }

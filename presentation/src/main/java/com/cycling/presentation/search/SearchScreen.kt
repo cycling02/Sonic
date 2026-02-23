@@ -25,11 +25,9 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Album
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.History
@@ -63,15 +61,13 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.cycling.domain.model.Album
 import com.cycling.domain.model.Artist
 import com.cycling.domain.model.Song
-import com.cycling.presentation.components.IOSArtistCard
-import com.cycling.presentation.components.IOSInsetGrouped
-import com.cycling.presentation.components.IOSListSectionHeader
-import com.cycling.presentation.components.IOSMediaCard
-import com.cycling.presentation.components.IOSSectionHeader
+import com.cycling.core.ui.components.M3ArtistCard
+import com.cycling.core.ui.components.M3MediaCard
 import com.cycling.presentation.components.SongListItem
 import com.cycling.presentation.components.formatDuration
-import com.cycling.presentation.theme.DesignTokens
-import com.cycling.presentation.theme.SonicColors
+import com.cycling.core.ui.theme.M3Spacing
+import com.cycling.core.ui.theme.M3Shapes
+import com.cycling.core.ui.theme.M3ExpressiveColors
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -114,7 +110,7 @@ fun SearchScreen(
 
     Scaffold(
         topBar = {
-            IOSSearchBar(
+            M3SearchBar(
                 searchQuery = uiState.searchQuery,
                 onQueryChange = { viewModel.handleIntent(SearchIntent.SearchQueryChanged(it)) },
                 onSearch = { viewModel.handleIntent(SearchIntent.SearchSubmitted(it)) },
@@ -162,7 +158,7 @@ fun SearchScreen(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun IOSSearchBar(
+private fun M3SearchBar(
     searchQuery: String,
     onQueryChange: (String) -> Unit,
     onSearch: (String) -> Unit,
@@ -179,8 +175,8 @@ private fun IOSSearchBar(
             .statusBarsPadding()
             .background(MaterialTheme.colorScheme.surface)
             .padding(
-                horizontal = DesignTokens.Spacing.md,
-                vertical = DesignTokens.Spacing.sm
+                horizontal = M3Spacing.medium,
+                vertical = M3Spacing.small
             ),
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -189,7 +185,7 @@ private fun IOSSearchBar(
             onValueChange = onQueryChange,
             modifier = Modifier
                 .weight(1f)
-                .clip(RoundedCornerShape(DesignTokens.CornerRadius.searchBar))
+                .clip(M3Shapes.cornerMedium)
                 .background(MaterialTheme.colorScheme.surfaceVariant)
                 .focusRequester(focusRequester),
             placeholder = {
@@ -245,7 +241,7 @@ private fun IOSSearchBar(
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.primary,
                 modifier = Modifier
-                    .padding(start = DesignTokens.Spacing.sm)
+                    .padding(start = M3Spacing.small)
                     .clickable(onClick = onCancel)
             )
         }
@@ -272,13 +268,13 @@ private fun SearchHistorySection(
                     modifier = Modifier.size(60.dp),
                     tint = MaterialTheme.colorScheme.onSurfaceVariant
                 )
-                Spacer(modifier = Modifier.height(DesignTokens.Spacing.md))
+                Spacer(modifier = Modifier.height(M3Spacing.medium))
                 Text(
                     text = "搜索音乐",
                     style = MaterialTheme.typography.headlineSmall,
                     color = MaterialTheme.colorScheme.onBackground
                 )
-                Spacer(modifier = Modifier.height(DesignTokens.Spacing.sm))
+                Spacer(modifier = Modifier.height(M3Spacing.small))
                 Text(
                     text = "输入歌曲、专辑或歌手名称进行搜索",
                     style = MaterialTheme.typography.bodyMedium,
@@ -292,13 +288,13 @@ private fun SearchHistorySection(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(
-                        horizontal = DesignTokens.Spacing.md,
-                        vertical = DesignTokens.Spacing.sm
+                        horizontal = M3Spacing.medium,
+                        vertical = M3Spacing.small
                     ),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                IOSListSectionHeader(title = "搜索历史")
+                M3SectionHeader(title = "搜索历史")
                 Text(
                     text = "清除",
                     style = MaterialTheme.typography.bodyMedium,
@@ -307,7 +303,11 @@ private fun SearchHistorySection(
                 )
             }
 
-            IOSInsetGrouped {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = M3Spacing.medium)
+            ) {
                 history.forEachIndexed { index, query ->
                     HistoryItem(
                         query = query,
@@ -318,6 +318,19 @@ private fun SearchHistorySection(
             }
         }
     }
+}
+
+@Composable
+private fun M3SectionHeader(
+    title: String,
+    modifier: Modifier = Modifier
+) {
+    Text(
+        text = title,
+        style = MaterialTheme.typography.titleSmall,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+        modifier = modifier.padding(vertical = M3Spacing.small)
+    )
 }
 
 @Composable
@@ -335,8 +348,8 @@ private fun HistoryItem(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(
-                    horizontal = DesignTokens.Spacing.md,
-                    vertical = DesignTokens.Spacing.sm + DesignTokens.Spacing.xs
+                    horizontal = M3Spacing.small,
+                    vertical = M3Spacing.small + M3Spacing.extraSmall
                 ),
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -346,7 +359,7 @@ private fun HistoryItem(
                 tint = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.size(20.dp)
             )
-            Spacer(modifier = Modifier.width(DesignTokens.Spacing.sm + DesignTokens.Spacing.xs))
+            Spacer(modifier = Modifier.width(M3Spacing.small + M3Spacing.extraSmall))
             Text(
                 text = query,
                 style = MaterialTheme.typography.bodyLarge,
@@ -360,7 +373,7 @@ private fun HistoryItem(
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(start = DesignTokens.ListItem.dividerIndent)
+                    .padding(start = M3Spacing.medium + M3Spacing.extraSmall)
                     .height(0.5.dp)
                     .background(MaterialTheme.colorScheme.outline)
             )
@@ -395,13 +408,13 @@ private fun SearchResultsSection(
                     modifier = Modifier.size(60.dp),
                     tint = MaterialTheme.colorScheme.onSurfaceVariant
                 )
-                Spacer(modifier = Modifier.height(DesignTokens.Spacing.md))
+                Spacer(modifier = Modifier.height(M3Spacing.medium))
                 Text(
                     text = "未找到结果",
                     style = MaterialTheme.typography.headlineSmall,
                     color = MaterialTheme.colorScheme.onBackground
                 )
-                Spacer(modifier = Modifier.height(DesignTokens.Spacing.sm))
+                Spacer(modifier = Modifier.height(M3Spacing.small))
                 Text(
                     text = "尝试使用不同的关键词搜索",
                     style = MaterialTheme.typography.bodyMedium,
@@ -465,10 +478,10 @@ private fun SearchTabRow(
         modifier = Modifier
             .fillMaxWidth()
             .padding(
-                horizontal = DesignTokens.Spacing.md,
-                vertical = DesignTokens.Spacing.sm
+                horizontal = M3Spacing.medium,
+                vertical = M3Spacing.small
             ),
-        horizontalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.sm)
+        horizontalArrangement = Arrangement.spacedBy(M3Spacing.small)
     ) {
         SearchTabChip(
             label = "全部",
@@ -501,15 +514,15 @@ private fun SearchTabChip(
 ) {
     Box(
         modifier = Modifier
-            .clip(RoundedCornerShape(DesignTokens.CornerRadius.large))
+            .clip(M3Shapes.cornerLarge)
             .background(
                 if (selected) MaterialTheme.colorScheme.primary
                 else MaterialTheme.colorScheme.surfaceVariant
             )
             .clickable(onClick = onClick)
             .padding(
-                horizontal = DesignTokens.Spacing.sm + DesignTokens.Spacing.xs,
-                vertical = DesignTokens.Spacing.xs + 2.dp
+                horizontal = M3Spacing.small + M3Spacing.extraSmall,
+                vertical = M3Spacing.extraSmall + 2.dp
             )
     ) {
         Text(
@@ -535,9 +548,12 @@ private fun AllResultsContent(
     ) {
         if (songs.isNotEmpty()) {
             item {
-                IOSListSectionHeader(
+                M3SectionHeader(
                     title = "歌曲",
-                    modifier = Modifier.padding(top = DesignTokens.Spacing.sm)
+                    modifier = Modifier.padding(
+                        top = M3Spacing.small,
+                        start = M3Spacing.medium
+                    )
                 )
             }
             items(songs.take(3)) { song ->
@@ -554,20 +570,22 @@ private fun AllResultsContent(
 
         if (albums.isNotEmpty()) {
             item {
-                IOSSectionHeader(
+                M3SectionHeader(
                     title = "专辑",
-                    action = null,
-                    onActionClick = null
+                    modifier = Modifier.padding(
+                        top = M3Spacing.medium,
+                        start = M3Spacing.medium
+                    )
                 )
             }
             item {
                 LazyRow(
                     modifier = Modifier.fillMaxWidth(),
-                    contentPadding = PaddingValues(horizontal = DesignTokens.Spacing.md),
-                    horizontalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.sm + DesignTokens.Spacing.xs)
+                    contentPadding = PaddingValues(horizontal = M3Spacing.medium),
+                    horizontalArrangement = Arrangement.spacedBy(M3Spacing.small + M3Spacing.extraSmall)
                 ) {
                     items(albums.take(5)) { album ->
-                        IOSMediaCard(
+                        M3MediaCard(
                             title = album.name,
                             subtitle = album.artist,
                             artwork = album.albumArt,
@@ -577,25 +595,27 @@ private fun AllResultsContent(
                     }
                 }
             }
-            item { Spacer(modifier = Modifier.height(DesignTokens.Spacing.md)) }
+            item { Spacer(modifier = Modifier.height(M3Spacing.medium)) }
         }
 
         if (artists.isNotEmpty()) {
             item {
-                IOSSectionHeader(
+                M3SectionHeader(
                     title = "歌手",
-                    action = null,
-                    onActionClick = null
+                    modifier = Modifier.padding(
+                        top = M3Spacing.medium,
+                        start = M3Spacing.medium
+                    )
                 )
             }
             item {
                 LazyRow(
                     modifier = Modifier.fillMaxWidth(),
-                    contentPadding = PaddingValues(horizontal = DesignTokens.Spacing.md),
-                    horizontalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.sm + DesignTokens.Spacing.xs)
+                    contentPadding = PaddingValues(horizontal = M3Spacing.medium),
+                    horizontalArrangement = Arrangement.spacedBy(M3Spacing.small + M3Spacing.extraSmall)
                 ) {
                     items(artists.take(5)) { artist ->
-                        IOSArtistCard(
+                        M3ArtistCard(
                             name = artist.name,
                             artwork = artist.artistArt,
                             onClick = { onArtistClick(artist) }
@@ -603,7 +623,7 @@ private fun AllResultsContent(
                     }
                 }
             }
-            item { Spacer(modifier = Modifier.height(DesignTokens.Spacing.md)) }
+            item { Spacer(modifier = Modifier.height(M3Spacing.medium)) }
         }
     }
 }
@@ -636,8 +656,8 @@ private fun AlbumsResultList(
 ) {
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(DesignTokens.Spacing.md),
-        verticalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.sm + DesignTokens.Spacing.xs)
+        contentPadding = PaddingValues(M3Spacing.medium),
+        verticalArrangement = Arrangement.spacedBy(M3Spacing.small + M3Spacing.extraSmall)
     ) {
         items(albums) { album ->
             AlbumResultItem(
@@ -657,13 +677,13 @@ private fun AlbumResultItem(
         modifier = Modifier
             .fillMaxWidth()
             .clickable(onClick = onClick)
-            .padding(vertical = DesignTokens.Spacing.sm),
+            .padding(vertical = M3Spacing.small),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Box(
             modifier = Modifier
                 .size(56.dp)
-                .clip(RoundedCornerShape(DesignTokens.CornerRadius.small))
+                .clip(M3Shapes.cornerSmall)
                 .background(MaterialTheme.colorScheme.surfaceVariant),
             contentAlignment = Alignment.Center
         ) {
@@ -679,11 +699,11 @@ private fun AlbumResultItem(
                     imageVector = Icons.Default.Album,
                     contentDescription = null,
                     modifier = Modifier.size(28.dp),
-                    tint = SonicColors.Teal
+                    tint = M3ExpressiveColors.Teal
                 )
             }
         }
-        Spacer(modifier = Modifier.width(DesignTokens.Spacing.sm + DesignTokens.Spacing.xs))
+        Spacer(modifier = Modifier.width(M3Spacing.small + M3Spacing.extraSmall))
         Column(modifier = Modifier.weight(1f)) {
             Text(
                 text = album.name,
@@ -710,8 +730,8 @@ private fun ArtistsResultList(
 ) {
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(DesignTokens.Spacing.md),
-        verticalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.sm + DesignTokens.Spacing.xs)
+        contentPadding = PaddingValues(M3Spacing.medium),
+        verticalArrangement = Arrangement.spacedBy(M3Spacing.small + M3Spacing.extraSmall)
     ) {
         items(artists) { artist ->
             ArtistResultItem(
@@ -731,13 +751,13 @@ private fun ArtistResultItem(
         modifier = Modifier
             .fillMaxWidth()
             .clickable(onClick = onClick)
-            .padding(vertical = DesignTokens.Spacing.sm),
+            .padding(vertical = M3Spacing.small),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Box(
             modifier = Modifier
                 .size(56.dp)
-                .clip(RoundedCornerShape(28.dp))
+                .clip(M3Shapes.cornerFull)
                 .background(MaterialTheme.colorScheme.surfaceVariant),
             contentAlignment = Alignment.Center
         ) {
@@ -753,11 +773,11 @@ private fun ArtistResultItem(
                     imageVector = Icons.Default.Person,
                     contentDescription = null,
                     modifier = Modifier.size(28.dp),
-                    tint = SonicColors.Blue
+                    tint = M3ExpressiveColors.Blue
                 )
             }
         }
-        Spacer(modifier = Modifier.width(DesignTokens.Spacing.sm + DesignTokens.Spacing.xs))
+        Spacer(modifier = Modifier.width(M3Spacing.small + M3Spacing.extraSmall))
         Column(modifier = Modifier.weight(1f)) {
             Text(
                 text = artist.name,

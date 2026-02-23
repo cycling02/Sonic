@@ -43,9 +43,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogProperties
 import coil3.compose.AsyncImage
 import com.cycling.domain.model.Song
-import com.cycling.presentation.components.IOSFilledButton
-import com.cycling.presentation.components.IOSSegmentedButton
-import com.cycling.presentation.theme.SonicColors
+import com.cycling.core.ui.components.M3FilledButton
+import com.cycling.core.ui.components.M3SegmentedButtonRow
+import com.cycling.core.ui.theme.M3ExpressiveColors
 
 enum class AiPlaylistCreationStep {
     SELECT_MODE,
@@ -181,23 +181,14 @@ private fun SelectModeDialog(
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
 
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    IOSSegmentedButton(
-                        text = "随机创建",
-                        selected = selectedMode == AiPlaylistMode.RANDOM,
-                        onClick = { onModeSelected(AiPlaylistMode.RANDOM) },
-                        modifier = Modifier.weight(1f)
-                    )
-                    IOSSegmentedButton(
-                        text = "主题创建",
-                        selected = selectedMode == AiPlaylistMode.THEME,
-                        onClick = { onModeSelected(AiPlaylistMode.THEME) },
-                        modifier = Modifier.weight(1f)
-                    )
-                }
+                M3SegmentedButtonRow(
+                    options = listOf("随机创建", "主题创建"),
+                    selectedIndex = if (selectedMode == AiPlaylistMode.RANDOM) 0 else 1,
+                    onOptionSelected = { index ->
+                        onModeSelected(if (index == 0) AiPlaylistMode.RANDOM else AiPlaylistMode.THEME)
+                    },
+                    modifier = Modifier.fillMaxWidth()
+                )
 
                 Text(
                     text = if (selectedMode == AiPlaylistMode.RANDOM) {
@@ -211,10 +202,9 @@ private fun SelectModeDialog(
             }
         },
         confirmButton = {
-            IOSFilledButton(
-                text = "下一步",
-                onClick = onNext
-            )
+            M3FilledButton(onClick = onNext) {
+                Text("下一步")
+            }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
@@ -318,15 +308,12 @@ private fun InputDetailsDialog(
             }
         },
         confirmButton = {
-            IOSFilledButton(
-                text = "生成",
+            M3FilledButton(
                 onClick = onGenerate,
-                backgroundColor = if (mode == AiPlaylistMode.THEME && theme.isBlank()) {
-                    MaterialTheme.colorScheme.surfaceVariant
-                } else {
-                    MaterialTheme.colorScheme.primary
-                }
-            )
+                enabled = !(mode == AiPlaylistMode.THEME && theme.isBlank())
+            ) {
+                Text("生成")
+            }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
@@ -411,11 +398,11 @@ private fun PreviewDialog(
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                                 Spacer(modifier = Modifier.height(16.dp))
-                                IOSFilledButton(
-                                    text = "重试",
-                                    onClick = onRegenerate,
-                                    backgroundColor = SonicColors.Orange
-                                )
+                                M3FilledButton(
+                                    onClick = onRegenerate
+                                ) {
+                                    Text("重试")
+                                }
                             }
                         }
                     }
@@ -456,10 +443,9 @@ private fun PreviewDialog(
         },
         confirmButton = {
             if (!isLoading && error == null && songs.isNotEmpty()) {
-                IOSFilledButton(
-                    text = "创建",
-                    onClick = onCreate
-                )
+                M3FilledButton(onClick = onCreate) {
+                    Text("创建")
+                }
             }
         },
         dismissButton = {
@@ -518,7 +504,7 @@ private fun PreviewSongItem(
                         imageVector = Icons.Default.MusicNote,
                         contentDescription = null,
                         modifier = Modifier.size(20.dp),
-                        tint = SonicColors.Red
+                        tint = M3ExpressiveColors.Red
                     )
                 }
             }

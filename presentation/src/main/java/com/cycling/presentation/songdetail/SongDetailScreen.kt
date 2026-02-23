@@ -59,11 +59,11 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil3.compose.AsyncImage
+import com.cycling.core.ui.components.M3FilledButton
+import com.cycling.core.ui.theme.M3ExpressiveColors
 import com.cycling.domain.model.AudioMetadata
 import com.cycling.domain.model.Song
-import com.cycling.presentation.components.IOSFilledButton
 import com.cycling.presentation.components.formatDuration
-import com.cycling.presentation.theme.SonicColors
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -276,7 +276,7 @@ private fun EditModeContent(
                         imageVector = Icons.Default.MusicNote,
                         contentDescription = null,
                         modifier = Modifier.size(80.dp),
-                        tint = SonicColors.Red
+                        tint = M3ExpressiveColors.Red
                     )
                 }
             }
@@ -335,13 +335,13 @@ private fun EditModeContent(
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            IOSFilledButton(
-                text = if (uiState.isSaving) "保存中..." else "保存",
+            M3FilledButton(
                 onClick = onSave,
                 modifier = Modifier.fillMaxWidth(),
-                backgroundColor = if (uiState.hasChanges && !uiState.isSaving) MaterialTheme.colorScheme.primary
-                else MaterialTheme.colorScheme.surfaceVariant
-            )
+                enabled = uiState.hasChanges && !uiState.isSaving
+            ) {
+                Text(text = if (uiState.isSaving) "保存中..." else "保存")
+            }
 
             Spacer(modifier = Modifier.height(12.dp))
 
@@ -400,7 +400,7 @@ private fun DiscardChangesDialog(
             TextButton(onClick = onDiscard) {
                 Text(
                     text = "放弃",
-                    color = SonicColors.Red
+                    color = M3ExpressiveColors.Red
                 )
             }
         },
@@ -444,7 +444,7 @@ private fun SongHeader(song: Song) {
                         imageVector = Icons.Default.MusicNote,
                         contentDescription = null,
                         modifier = Modifier.size(100.dp),
-                        tint = SonicColors.Red
+                        tint = M3ExpressiveColors.Red
                     )
                 }
             }
@@ -492,12 +492,13 @@ private fun ActionButtons(
             .padding(horizontal = 16.dp),
         horizontalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        IOSFilledButton(
-            text = "播放",
+        M3FilledButton(
             onClick = onPlay,
             icon = Icons.Default.PlayArrow,
             modifier = Modifier.weight(1f)
-        )
+        ) {
+            Text(text = "播放")
+        }
 
         IconButton(
             onClick = onFavorite,
@@ -505,14 +506,14 @@ private fun ActionButtons(
                 .size(48.dp)
                 .clip(RoundedCornerShape(12.dp))
                 .background(
-                    if (isFavorite) SonicColors.Red.copy(alpha = 0.1f)
+                    if (isFavorite) M3ExpressiveColors.Red.copy(alpha = 0.1f)
                     else MaterialTheme.colorScheme.surfaceVariant
                 )
         ) {
             Icon(
                 imageVector = if (isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
                 contentDescription = if (isFavorite) "取消收藏" else "收藏",
-                tint = if (isFavorite) SonicColors.Red else MaterialTheme.colorScheme.onSurfaceVariant
+                tint = if (isFavorite) M3ExpressiveColors.Red else MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
 

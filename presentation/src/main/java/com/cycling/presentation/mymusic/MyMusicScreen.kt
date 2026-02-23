@@ -16,8 +16,8 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.TrendingUp
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.History
@@ -41,12 +41,13 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.cycling.core.ui.components.M3TopAppBar
+import com.cycling.core.ui.theme.M3ExpressiveColors
+import com.cycling.core.ui.theme.M3Shapes
+import com.cycling.core.ui.theme.M3Spacing
 import com.cycling.domain.model.Song
-import com.cycling.presentation.components.IOSTopAppBar
 import com.cycling.presentation.components.PlayActionButtons
 import com.cycling.presentation.components.SongListItem
-import com.cycling.presentation.theme.DesignTokens
-import com.cycling.presentation.theme.SonicColors
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -68,9 +69,11 @@ fun MyMusicScreen(
 
     Scaffold(
         topBar = {
-            IOSTopAppBar(
+            M3TopAppBar(
                 title = "我的音乐",
-                onNavigateBack = onNavigateBack,
+                navigationIcon = Icons.AutoMirrored.Filled.ArrowBack,
+                navigationIconContentDescription = "返回",
+                onNavigationClick = onNavigateBack,
                 actions = {
                     val currentSongs = when (uiState.currentTab) {
                         MyMusicTab.FAVORITES -> uiState.favoriteSongs
@@ -103,7 +106,7 @@ fun MyMusicScreen(
                 .fillMaxSize()
                 .padding(paddingValues)
         ) {
-            IOSSegmentedControl(
+            M3SegmentedControl(
                 tabs = listOf(
                     TabItem("喜欢", MyMusicTab.FAVORITES),
                     TabItem("最近播放", MyMusicTab.RECENTLY_PLAYED),
@@ -147,7 +150,7 @@ private data class TabItem(
 )
 
 @Composable
-private fun IOSSegmentedControl(
+private fun M3SegmentedControl(
     tabs: List<TabItem>,
     selectedTab: MyMusicTab,
     onTabSelected: (MyMusicTab) -> Unit
@@ -155,8 +158,8 @@ private fun IOSSegmentedControl(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = DesignTokens.Spacing.md, vertical = DesignTokens.Spacing.sm)
-            .clip(RoundedCornerShape(DesignTokens.CornerRadius.medium))
+            .padding(horizontal = M3Spacing.medium, vertical = M3Spacing.small)
+            .clip(M3Shapes.cornerMedium)
             .background(MaterialTheme.colorScheme.surfaceVariant)
             .padding(2.dp),
         horizontalArrangement = Arrangement.spacedBy(2.dp)
@@ -166,7 +169,7 @@ private fun IOSSegmentedControl(
             Box(
                 modifier = Modifier
                     .weight(1f)
-                    .clip(RoundedCornerShape(DesignTokens.CornerRadius.small))
+                    .clip(M3Shapes.cornerSmall)
                     .background(
                         if (isSelected) MaterialTheme.colorScheme.surface
                         else Color.Transparent
@@ -203,7 +206,7 @@ private fun FavoritesContent(
     } else if (songs.isEmpty()) {
         EmptyState(
             icon = Icons.Default.Favorite,
-            iconTint = SonicColors.Pink,
+            iconTint = M3ExpressiveColors.Pink,
             title = "还没有喜欢的歌曲",
             subtitle = "在播放器中点击心形图标来收藏歌曲"
         )
@@ -216,7 +219,7 @@ private fun FavoritesContent(
                     Icon(
                         imageVector = Icons.Default.Favorite,
                         contentDescription = "取消收藏",
-                        tint = SonicColors.Red
+                        tint = M3ExpressiveColors.Red
                     )
                 }
             }
@@ -240,7 +243,7 @@ private fun RecentlyPlayedContent(
     } else if (songs.isEmpty()) {
         EmptyState(
             icon = Icons.Default.History,
-            iconTint = SonicColors.Orange,
+            iconTint = M3ExpressiveColors.Orange,
             title = "还没有播放记录",
             subtitle = "播放歌曲后会显示在这里"
         )
@@ -265,7 +268,7 @@ private fun MostPlayedContent(
     } else if (songs.isEmpty()) {
         EmptyState(
             icon = Icons.AutoMirrored.Filled.TrendingUp,
-            iconTint = SonicColors.Purple,
+            iconTint = M3ExpressiveColors.Purple,
             title = "还没有播放统计",
             subtitle = "播放歌曲后会显示在这里"
         )

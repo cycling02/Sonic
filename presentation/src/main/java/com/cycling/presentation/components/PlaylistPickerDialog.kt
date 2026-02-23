@@ -3,6 +3,7 @@ package com.cycling.presentation.components
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -19,6 +20,7 @@ import androidx.compose.material.icons.filled.LibraryMusic
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
@@ -34,6 +36,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.unit.dp
+import com.cycling.core.ui.components.M3ListItem
 import com.cycling.domain.model.Playlist
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -77,11 +80,15 @@ fun PlaylistPickerDialog(
 
                 Spacer(modifier = Modifier.height(8.dp))
 
-                IOSListItem(
-                    title = "新建播放列表",
-                    onClick = { showCreateDialog = true },
-                    showDivider = playlists.isNotEmpty(),
-                    leading = {
+                M3ListItem(
+                    headlineContent = {
+                        Text(
+                            text = "新建播放列表",
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                    },
+                    leadingContent = {
                         Box(
                             modifier = Modifier.size(32.dp),
                             contentAlignment = Alignment.Center
@@ -94,13 +101,14 @@ fun PlaylistPickerDialog(
                             )
                         }
                     },
-                    trailing = {
+                    trailingContent = {
                         Text(
                             text = "",
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
-                    }
+                    },
+                    onClick = { showCreateDialog = true }
                 )
 
                 if (playlists.isEmpty()) {
@@ -141,11 +149,15 @@ private fun PlaylistPickerItem(
     onClick: () -> Unit,
     showDivider: Boolean
 ) {
-    IOSListItem(
-        title = playlist.name,
-        onClick = onClick,
-        showDivider = showDivider,
-        leading = {
+    M3ListItem(
+        headlineContent = {
+            Text(
+                text = playlist.name,
+                style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+        },
+        leadingContent = {
             Box(
                 modifier = Modifier.size(32.dp),
                 contentAlignment = Alignment.Center
@@ -158,13 +170,14 @@ private fun PlaylistPickerItem(
                 )
             }
         },
-        trailing = {
+        trailingContent = {
             Text(
                 text = "${playlist.numberOfSongs} 首",
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
-        }
+        },
+        onClick = onClick
     )
 }
 

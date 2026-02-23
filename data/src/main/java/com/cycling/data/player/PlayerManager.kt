@@ -3,8 +3,11 @@ package com.cycling.data.player
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.media.MediaMetadataRetriever
 import android.net.Uri
+import android.os.Build
 import android.provider.MediaStore
+import android.util.Size
 import androidx.annotation.OptIn
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
@@ -162,7 +165,7 @@ class PlayerManager @Inject constructor(
 
         song.albumArt?.let { artworkUri ->
             try {
-                val bitmap = loadAlbumArtBitmap(artworkUri)
+                val bitmap = loadAlbumArtBitmap(artworkUri, song.path)
                 if (bitmap != null) {
                     val artworkData = bitmapToByteArray(bitmap)
                     metadataBuilder.setArtworkData(artworkData, MediaMetadata.PICTURE_TYPE_FRONT_COVER)
@@ -181,14 +184,54 @@ class PlayerManager @Inject constructor(
             .build()
     }
 
-    private fun loadAlbumArtBitmap(uriString: String): Bitmap? {
+    private fun loadAlbumArtBitmap(uriString: String, songPath: String? = null): Bitmap? {
         return try {
             val uri = uriString.toUri()
-            context.contentResolver.openInputStream(uri)?.use { inputStream ->
-                BitmapFactory.decodeStream(inputStream)
+
+            // Try to load thumbnail using modern API (Android 10+)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                try {
+                    val thumbnail = context.contentResolver.loadThumbnail(
+                        uri,
+                        Size(512, 512),
+                        null
+                    )
+                    if (thumbnail != null) {
+                        return thumbnail
+                    }
+                } catch (e: Exception) {
+                    Timber.d("loadAlbumArtBitmap: thumbnail loading failed, falling back to embedded artwork")
+                }
+            }
+
+            // Fallback: try to open input stream (works on older Android versions)
+            try {
+                context.contentResolver.openInputStream(uri)?.use { inputStream ->
+                    return BitmapFactory.decodeStream(inputStream)
+                }
+            } catch (e: Exception) {
+                Timber.d("loadAlbumArtBitmap: content resolver failed, trying embedded artwork")
+            }
+
+            // Final fallback: extract embedded artwork from audio file
+            songPath?.let { path ->
+                extractEmbeddedArtwork(path)
             }
         } catch (e: Exception) {
             Timber.e(e, "loadAlbumArtBitmap: failed to load from $uriString")
+            null
+        }
+    }
+
+    private fun extractEmbeddedArtwork(filePath: String): Bitmap? {
+        return try {
+            val retriever = MediaMetadataRetriever()
+            retriever.setDataSource(filePath)
+            val art = retriever.embeddedPicture
+            retriever.release()
+            art?.let { BitmapFactory.decodeByteArray(it, 0, it.size) }
+        } catch (e: Exception) {
+            Timber.e(e, "extractEmbeddedArtwork: failed to extract artwork from $filePath")
             null
         }
     }

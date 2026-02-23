@@ -52,6 +52,8 @@ sealed interface LibraryDestination : Screen {
 sealed interface SettingsDestination : Screen {
     @Serializable
     data object Main : SettingsDestination
+    @Serializable
+    data object Theme : SettingsDestination
 }
 
 sealed interface NavGraph : Screen {

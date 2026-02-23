@@ -56,7 +56,8 @@ import com.cycling.domain.lyrics.model.karaoke.KaraokeLine
 import com.cycling.domain.lyrics.model.synced.SyncedLine
 import com.cycling.presentation.lyrics.utils.isRtl
 import com.cycling.presentation.lyrics.utils.modifier.dynamicFadingEdge
-import com.cycling.presentation.theme.DesignTokens
+import com.cycling.core.ui.theme.M3Spacing
+import com.cycling.core.ui.theme.M3Motion
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.withContext
@@ -84,7 +85,7 @@ fun KaraokeLyricsView(
     breathingDotsDefaults: KaraokeBreathingDotsDefaults = KaraokeBreathingDotsDefaults(),
     blendMode: BlendMode = BlendMode.Plus,
     useBlurEffect: Boolean = true,
-    offset: Dp = DesignTokens.Spacing.xl,
+    offset: Dp = M3Spacing.extraLarge,
     showDebugRectangles: Boolean = false
 ) {
     val density = LocalDensity.current
@@ -261,7 +262,7 @@ fun KaraokeLyricsView(
                 if (scrollOffset != null) {
                     listState.animateScrollBy(
                         scrollOffset,
-                        tween(DesignTokens.Animation.animationDurationMedium, 0, EaseOut)
+                        tween(M3Motion.durationMedium, 0, EaseOut)
                     )
                 } else {
                     listState.animateScrollToItem(firstFocusedLineIndex, -stableOffsetPx)
@@ -286,7 +287,7 @@ fun KaraokeLyricsView(
                 val isCurrentFocusLine by rememberUpdatedState(index in allFocusedLineIndex)
 
                 Column(modifier = Modifier.fillMaxWidth().dynamicFadingEdge(listState, index)) {
-                    val animDuration = DesignTokens.Animation.animationDurationLong + 100
+                    val animDuration = M3Motion.durationLong + 100
 
                     val previousLine = lyrics.lines.getOrNull(index - 1)
 
@@ -313,7 +314,7 @@ fun KaraokeLyricsView(
                             endTimeMs = if (showDotsIntro) firstLine!!.start else line.start,
                             currentTimeProvider = timeProvider,
                             defaults = breathingDotsDefaults,
-                            modifier = Modifier.padding(vertical = DesignTokens.Spacing.md)
+                            modifier = Modifier.padding(vertical = M3Spacing.medium)
                         )
                     }
 
@@ -350,12 +351,12 @@ fun KaraokeLyricsView(
                         } else {
                             0f
                         },
-                        animationSpec = tween(DesignTokens.Animation.animationDurationMedium),
+                        animationSpec = tween(M3Motion.durationMedium),
                     )
 
                     val lineAlpha by animateFloatAsState(
                         targetValue = if (isCurrentFocusLine) 1f else 0.5f,
-                        animationSpec = tween(DesignTokens.Animation.animationDurationMedium),
+                        animationSpec = tween(M3Motion.durationMedium),
                     )
 
                     when (line) {

@@ -10,6 +10,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -33,6 +34,7 @@ import androidx.compose.material.icons.filled.Error
 import androidx.compose.material.icons.filled.Folder
 import androidx.compose.material.icons.filled.GraphicEq
 import androidx.compose.material.icons.filled.HighQuality
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Key
 import androidx.compose.material.icons.filled.LibraryMusic
@@ -59,6 +61,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -73,19 +76,17 @@ import com.cycling.domain.model.ExcludedFolder
 import com.cycling.domain.model.LibraryStats
 import com.cycling.domain.model.ScanResult
 import com.cycling.domain.model.ThemeMode
-import com.cycling.presentation.components.IOSCardContainer
-import com.cycling.presentation.components.IOSCenteredContent
-import com.cycling.presentation.components.IOSFilledButton
-import com.cycling.presentation.components.IOSInsetGrouped
-import com.cycling.presentation.components.IOSListItem
-import com.cycling.presentation.components.IOSListSectionHeader
-import com.cycling.presentation.components.IOSResultRow
-import com.cycling.presentation.components.IOSTextButton
-import com.cycling.presentation.components.IOSTopAppBar
+import com.cycling.core.ui.components.M3FilledButton
+import com.cycling.core.ui.components.M3ListItem
+import com.cycling.core.ui.components.M3ListItemOneLine
+import com.cycling.core.ui.components.M3ListItemTwoLine
+import com.cycling.core.ui.components.M3OutlinedButton
+import com.cycling.core.ui.components.M3TextButton
+import com.cycling.core.ui.components.M3TopAppBar
+import com.cycling.core.ui.theme.M3ExpressiveColors
+import com.cycling.core.ui.theme.M3Spacing
 import com.cycling.presentation.components.PieChart
 import com.cycling.presentation.components.PieChartData
-import com.cycling.presentation.theme.DesignTokens
-import com.cycling.presentation.theme.SonicColors
 
 private val HRColor = Color(0xFFFFD700)
 private val SQColor = Color(0xFF9C27B0)
@@ -104,6 +105,7 @@ private data class QualityStatItemUi(
 fun SettingsScreen(
     onNavigateBack: () -> Unit,
     onShowToast: (String) -> Unit,
+    onNavigateToThemeSettings: () -> Unit = {},
     viewModel: SettingsViewModel = hiltViewModel(),
     bottomPadding: Dp = 0.dp
 ) {
@@ -159,7 +161,7 @@ fun SettingsScreen(
 
     Scaffold(
         topBar = {
-            IOSTopAppBar(
+            M3TopAppBar(
                 title = when (uiState.currentDestination) {
                     SettingsDestination.MAIN -> "设置"
                     SettingsDestination.SCAN -> "扫描本地音乐"
@@ -167,14 +169,16 @@ fun SettingsScreen(
                     SettingsDestination.API_KEY_CONFIG -> "DeepSeek API 配置"
                     SettingsDestination.LIBRARY_STATS -> "音乐库统计"
                 },
-                onNavigateBack = { viewModel.handleIntent(SettingsIntent.NavigateBack) },
+                navigationIcon = Icons.AutoMirrored.Filled.ArrowBack,
+                navigationIconContentDescription = "返回",
+                onNavigationClick = { viewModel.handleIntent(SettingsIntent.NavigateBack) },
                 actions = {
                     if (uiState.currentDestination == SettingsDestination.EXCLUDE_FOLDERS) {
                         IconButton(onClick = { folderPickerLauncher.launch(null) }) {
                             Icon(
                                 imageVector = Icons.Default.Add,
                                 contentDescription = "添加文件夹",
-                                tint = SonicColors.Blue
+                                tint = M3ExpressiveColors.Blue
                             )
                         }
                     }
@@ -192,6 +196,7 @@ fun SettingsScreen(
                 onNavigateToExcludeFolders = { viewModel.handleIntent(SettingsIntent.NavigateTo(SettingsDestination.EXCLUDE_FOLDERS)) },
                 onNavigateToApiKeyConfig = { viewModel.handleIntent(SettingsIntent.NavigateTo(SettingsDestination.API_KEY_CONFIG)) },
                 onNavigateToLibraryStats = { viewModel.handleIntent(SettingsIntent.NavigateTo(SettingsDestination.LIBRARY_STATS)) },
+                onNavigateToThemeSettings = onNavigateToThemeSettings,
                 modifier = Modifier.padding(paddingValues)
             )
             SettingsDestination.SCAN -> ScanContent(
@@ -233,94 +238,86 @@ private fun MainSettingsContent(
     onNavigateToExcludeFolders: () -> Unit,
     onNavigateToApiKeyConfig: () -> Unit,
     onNavigateToLibraryStats: () -> Unit,
+    onNavigateToThemeSettings: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Column(modifier = modifier.verticalScroll(rememberScrollState())) {
-        Spacer(modifier = Modifier.height(DesignTokens.Spacing.sm))
+        Spacer(modifier = Modifier.height(M3Spacing.small))
 
-        IOSListSectionHeader(title = "音乐库")
-        IOSInsetGrouped {
-            IOSListItem(
-                title = "扫描本地音乐",
-                icon = Icons.Default.Refresh,
-                iconBackgroundColor = SonicColors.Blue,
-                onClick = onNavigateToScan,
-                showDivider = true
+        SettingsSectionHeader(title = "音乐库")
+        SettingsCardContainer {
+            M3ListItemOneLine(
+                text = "扫描本地音乐",
+                leadingIcon = Icons.Default.Refresh,
+                leadingIconBackgroundColor = M3ExpressiveColors.Blue,
+                onClick = onNavigateToScan
             )
-            IOSListItem(
-                title = "排除文件夹",
-                icon = Icons.Default.Folder,
-                iconBackgroundColor = SonicColors.Orange,
-                onClick = onNavigateToExcludeFolders,
-                showDivider = true
+            M3ListItemOneLine(
+                text = "排除文件夹",
+                leadingIcon = Icons.Default.Folder,
+                leadingIconBackgroundColor = M3ExpressiveColors.Orange,
+                onClick = onNavigateToExcludeFolders
             )
-            IOSListItem(
-                title = "音乐库统计",
-                icon = Icons.Default.BarChart,
-                iconBackgroundColor = SonicColors.Green,
-                onClick = onNavigateToLibraryStats,
-                showDivider = false
+            M3ListItemOneLine(
+                text = "音乐库统计",
+                leadingIcon = Icons.Default.BarChart,
+                leadingIconBackgroundColor = M3ExpressiveColors.Green,
+                onClick = onNavigateToLibraryStats
             )
         }
 
-        Spacer(modifier = Modifier.height(DesignTokens.Spacing.sectionSpacing))
+        Spacer(modifier = Modifier.height(M3Spacing.large))
 
-        IOSListSectionHeader(title = "播放")
-        IOSInsetGrouped {
-            IOSListItem(
-                title = "DeepSeek API 配置",
-                subtitle = if (hasApiKey) "已配置" else "未配置",
-                icon = Icons.Default.Key,
-                iconBackgroundColor = SonicColors.Purple,
-                onClick = onNavigateToApiKeyConfig,
-                showDivider = true
+        SettingsSectionHeader(title = "播放")
+        SettingsCardContainer {
+            M3ListItemTwoLine(
+                headlineText = "DeepSeek API 配置",
+                supportingText = if (hasApiKey) "已配置" else "未配置",
+                leadingIcon = Icons.Default.Key,
+                leadingIconBackgroundColor = M3ExpressiveColors.Purple,
+                onClick = onNavigateToApiKeyConfig
             )
-            IOSListItem(
-                title = "主题",
-                subtitle = getThemeModeText(themeMode),
-                icon = Icons.Default.Palette,
-                iconBackgroundColor = SonicColors.Indigo,
-                onClick = {},
-                showDivider = false
+            M3ListItemTwoLine(
+                headlineText = "主题",
+                supportingText = getThemeModeText(themeMode),
+                leadingIcon = Icons.Default.Palette,
+                leadingIconBackgroundColor = M3ExpressiveColors.Indigo,
+                onClick = {}
             )
         }
 
-        Spacer(modifier = Modifier.height(DesignTokens.Spacing.sectionSpacing))
+        Spacer(modifier = Modifier.height(M3Spacing.large))
 
-        IOSListSectionHeader(title = "外观")
-        IOSInsetGrouped {
+        SettingsSectionHeader(title = "外观")
+        SettingsCardContainer {
             ThemeOptionItem(
                 text = "跟随系统",
                 selected = themeMode == ThemeMode.SYSTEM,
-                onClick = { onThemeModeChange(ThemeMode.SYSTEM) },
-                showDivider = true
+                onClick = { onThemeModeChange(ThemeMode.SYSTEM) }
             )
             ThemeOptionItem(
                 text = "浅色模式",
                 selected = themeMode == ThemeMode.LIGHT,
-                onClick = { onThemeModeChange(ThemeMode.LIGHT) },
-                showDivider = true
+                onClick = { onThemeModeChange(ThemeMode.LIGHT) }
             )
             ThemeOptionItem(
                 text = "深色模式",
                 selected = themeMode == ThemeMode.DARK,
-                onClick = { onThemeModeChange(ThemeMode.DARK) },
-                showDivider = false
+                onClick = { onThemeModeChange(ThemeMode.DARK) }
             )
         }
 
-        Spacer(modifier = Modifier.height(DesignTokens.Spacing.sectionSpacing))
+        Spacer(modifier = Modifier.height(M3Spacing.large))
 
-        IOSListSectionHeader(title = "关于")
-        IOSInsetGrouped {
-            IOSListItem(
-                title = "版本",
-                subtitle = "1.0.0",
-                icon = Icons.Default.Info,
-                iconBackgroundColor = SonicColors.Teal,
+        SettingsSectionHeader(title = "关于")
+        SettingsCardContainer {
+            M3ListItemTwoLine(
+                headlineText = "版本",
+                supportingText = "1.0.0",
+                leadingIcon = Icons.Default.Info,
+                leadingIconBackgroundColor = M3ExpressiveColors.Teal,
                 onClick = {},
-                showDivider = false,
-                trailing = {
+                trailingContent = {
                     Text(
                         text = "1.0.0",
                         style = MaterialTheme.typography.bodyMedium,
@@ -330,27 +327,55 @@ private fun MainSettingsContent(
             )
         }
 
-        Spacer(modifier = Modifier.height(DesignTokens.Spacing.sectionSpacing))
+        Spacer(modifier = Modifier.height(M3Spacing.large))
     }
+}
+
+@Composable
+private fun SettingsSectionHeader(
+    title: String,
+    modifier: Modifier = Modifier
+) {
+    Text(
+        text = title,
+        style = MaterialTheme.typography.labelMedium,
+        color = MaterialTheme.colorScheme.primary,
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(horizontal = M3Spacing.medium, vertical = M3Spacing.small)
+    )
+}
+
+@Composable
+private fun SettingsCardContainer(
+    modifier: Modifier = Modifier,
+    content: @Composable ColumnScope.() -> Unit
+) {
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(horizontal = M3Spacing.medium)
+            .clip(RoundedCornerShape(12.dp))
+            .background(MaterialTheme.colorScheme.surfaceContainerHigh),
+        content = content
+    )
 }
 
 @Composable
 private fun ThemeOptionItem(
     text: String,
     selected: Boolean,
-    onClick: () -> Unit,
-    showDivider: Boolean
+    onClick: () -> Unit
 ) {
-    IOSListItem(
-        title = text,
+    M3ListItemOneLine(
+        text = text,
         onClick = onClick,
-        showDivider = showDivider,
-        trailing = {
+        trailingContent = {
             if (selected) {
                 Icon(
                     imageVector = Icons.Default.Check,
                     contentDescription = null,
-                    tint = SonicColors.Green,
+                    tint = M3ExpressiveColors.Green,
                     modifier = Modifier.size(20.dp)
                 )
             }
@@ -408,17 +433,18 @@ private fun ScanContent(
 private fun PermissionRequiredContent(
     onRequestPermission: () -> Unit
 ) {
-    IOSCenteredContent(
+    CenteredContent(
         icon = Icons.Default.Folder,
         iconTint = MaterialTheme.colorScheme.primary,
         title = "需要存储权限",
         subtitle = "为了扫描您设备上的音乐文件，请授予存储访问权限"
     ) {
-        IOSFilledButton(
-            text = "授予权限",
+        M3FilledButton(
             onClick = onRequestPermission,
             modifier = Modifier.fillMaxWidth(0.6f)
-        )
+        ) {
+            Text("授予权限")
+        }
     }
 }
 
@@ -426,17 +452,18 @@ private fun PermissionRequiredContent(
 private fun IdleContent(
     onStartScan: () -> Unit
 ) {
-    IOSCenteredContent(
+    CenteredContent(
         icon = Icons.Default.Refresh,
         iconTint = MaterialTheme.colorScheme.primary,
         title = "扫描本地音乐",
         subtitle = "扫描设备上的音乐文件并添加到音乐库"
     ) {
-        IOSFilledButton(
-            text = "开始扫描",
+        M3FilledButton(
             onClick = onStartScan,
             modifier = Modifier.fillMaxWidth(0.6f)
-        )
+        ) {
+            Text("开始扫描")
+        }
     }
 }
 
@@ -467,26 +494,44 @@ private fun ScanningContent(
 
         if (state.totalSongs > 0) {
             Spacer(modifier = Modifier.height(24.dp))
-            IOSCardContainer(
-                modifier = Modifier.fillMaxWidth(0.7f)
-            ) {
-                LinearProgressIndicator(
-                    progress = { state.scanProgress },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(4.dp)
-                        .clip(RoundedCornerShape(2.dp)),
-                    color = MaterialTheme.colorScheme.primary,
-                    trackColor = MaterialTheme.colorScheme.outlineVariant
-                )
-                Spacer(modifier = Modifier.height(12.dp))
-                Text(
-                    text = "${state.songsProcessed} / ${state.totalSongs} 首歌曲",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
+            ScanProgressCard(
+                modifier = Modifier.fillMaxWidth(0.7f),
+                progress = state.scanProgress,
+                songsProcessed = state.songsProcessed,
+                totalSongs = state.totalSongs
+            )
         }
+    }
+}
+
+@Composable
+private fun ScanProgressCard(
+    progress: Float,
+    songsProcessed: Int,
+    totalSongs: Int,
+    modifier: Modifier = Modifier
+) {
+    Column(
+        modifier = modifier
+            .clip(RoundedCornerShape(12.dp))
+            .background(MaterialTheme.colorScheme.surfaceContainerHigh)
+            .padding(M3Spacing.medium)
+    ) {
+        LinearProgressIndicator(
+            progress = { progress },
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(4.dp)
+                .clip(RoundedCornerShape(2.dp)),
+            color = MaterialTheme.colorScheme.primary,
+            trackColor = MaterialTheme.colorScheme.outlineVariant
+        )
+        Spacer(modifier = Modifier.height(12.dp))
+        Text(
+            text = "$songsProcessed / $totalSongs 首歌曲",
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
     }
 }
 
@@ -504,7 +549,7 @@ private fun CompletedContent(
             modifier = Modifier
                 .size(60.dp)
                 .clip(RoundedCornerShape(30.dp))
-                .background(SonicColors.Green),
+                .background(M3ExpressiveColors.Green),
             contentAlignment = Alignment.Center
         ) {
             Icon(
@@ -521,18 +566,57 @@ private fun CompletedContent(
             color = MaterialTheme.colorScheme.onBackground
         )
         Spacer(modifier = Modifier.height(24.dp))
-        IOSCardContainer(
-            modifier = Modifier.fillMaxWidth(0.85f)
-        ) {
-            IOSResultRow(label = "歌曲", value = result.songsFound.toString())
-            IOSResultRow(label = "专辑", value = result.albumsFound.toString())
-            IOSResultRow(label = "歌手", value = result.artistsFound.toString())
-            IOSResultRow(label = "耗时", value = "${result.duration}ms", isLast = true)
-        }
+        ScanResultCard(
+            modifier = Modifier.fillMaxWidth(0.85f),
+            result = result
+        )
         Spacer(modifier = Modifier.height(32.dp))
-        IOSTextButton(
-            text = "重新扫描",
-            onClick = onScanAgain
+        M3TextButton(onClick = onScanAgain) {
+            Text("重新扫描")
+        }
+    }
+}
+
+@Composable
+private fun ScanResultCard(
+    result: ScanResult,
+    modifier: Modifier = Modifier
+) {
+    Column(
+        modifier = modifier
+            .clip(RoundedCornerShape(12.dp))
+            .background(MaterialTheme.colorScheme.surfaceContainerHigh)
+            .padding(M3Spacing.medium)
+    ) {
+        ResultRow(label = "歌曲", value = result.songsFound.toString())
+        ResultRow(label = "专辑", value = result.albumsFound.toString())
+        ResultRow(label = "歌手", value = result.artistsFound.toString())
+        ResultRow(label = "耗时", value = "${result.duration}ms", isLast = true)
+    }
+}
+
+@Composable
+private fun ResultRow(
+    label: String,
+    value: String,
+    isLast: Boolean = false
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .then(if (!isLast) Modifier.padding(bottom = M3Spacing.small) else Modifier),
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        Text(
+            text = label,
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+        Text(
+            text = value,
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurface,
+            fontWeight = FontWeight.Medium
         )
     }
 }
@@ -542,19 +626,58 @@ private fun ErrorContent(
     error: String,
     onRetry: () -> Unit
 ) {
-    IOSCenteredContent(
+    CenteredContent(
         icon = Icons.Default.Error,
         iconTint = MaterialTheme.colorScheme.error,
         title = "扫描失败",
         subtitle = error,
         titleColor = MaterialTheme.colorScheme.error
     ) {
-        IOSFilledButton(
-            text = "重试",
+        M3FilledButton(
             onClick = onRetry,
-            backgroundColor = MaterialTheme.colorScheme.error,
             modifier = Modifier.fillMaxWidth(0.6f)
+        ) {
+            Text("重试")
+        }
+    }
+}
+
+@Composable
+private fun CenteredContent(
+    icon: ImageVector,
+    iconTint: Color,
+    title: String,
+    subtitle: String,
+    titleColor: Color = MaterialTheme.colorScheme.onBackground,
+    action: @Composable () -> Unit
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(M3Spacing.medium),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        Icon(
+            imageVector = icon,
+            contentDescription = null,
+            modifier = Modifier.size(60.dp),
+            tint = iconTint
         )
+        Spacer(modifier = Modifier.height(M3Spacing.medium))
+        Text(
+            text = title,
+            style = MaterialTheme.typography.headlineSmall,
+            color = titleColor
+        )
+        Spacer(modifier = Modifier.height(M3Spacing.small))
+        Text(
+            text = subtitle,
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+        Spacer(modifier = Modifier.height(M3Spacing.large))
+        action()
     }
 }
 
@@ -635,13 +758,13 @@ private fun ExcludedFolderItem(
     folder: ExcludedFolder,
     onDelete: () -> Unit
 ) {
-    IOSListItem(
-        title = getFolderDisplayName(folder.path),
-        icon = Icons.Default.Folder,
-        iconBackgroundColor = SonicColors.Blue,
-        subtitle = folder.path,
+    M3ListItemTwoLine(
+        headlineText = getFolderDisplayName(folder.path),
+        supportingText = folder.path,
+        leadingIcon = Icons.Default.Folder,
+        leadingIconBackgroundColor = M3ExpressiveColors.Blue,
         onClick = {},
-        trailing = {
+        trailingContent = {
             IconButton(
                 onClick = onDelete,
                 modifier = Modifier.size(36.dp)
@@ -649,12 +772,11 @@ private fun ExcludedFolderItem(
                 Icon(
                     imageVector = Icons.Default.Delete,
                     contentDescription = "删除",
-                    tint = SonicColors.Red,
+                    tint = M3ExpressiveColors.Red,
                     modifier = Modifier.size(20.dp)
                 )
             }
-        },
-        showDivider = true
+        }
     )
 }
 

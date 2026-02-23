@@ -28,6 +28,7 @@ import com.cycling.presentation.playlistdetail.PlaylistDetailScreen
 import com.cycling.presentation.playlists.PlaylistsScreen
 import com.cycling.presentation.search.SearchScreen
 import com.cycling.presentation.settings.SettingsScreen
+import com.cycling.presentation.settings.ThemeSettingsScreen
 import com.cycling.presentation.songdetail.SongDetailScreen
 import com.cycling.presentation.songs.SongsScreen
 
@@ -50,11 +51,7 @@ fun AppNavGraph(
     }
     NavHost(
         navController = navController,
-        startDestination = Screen.Home,
-        enterTransition = { IOSNavAnimations.iosPushEnter() },
-        exitTransition = { IOSNavAnimations.iosPushExit() },
-        popEnterTransition = { IOSNavAnimations.iosPopEnter() },
-        popExitTransition = { IOSNavAnimations.iosPopExit() }
+        startDestination = Screen.Home
     ) {
         composable<Screen.Home> {
             HomeScreen(
@@ -72,12 +69,7 @@ fun AppNavGraph(
             )
         }
 
-        composable<Screen.Search>(
-            enterTransition = { IOSNavAnimations.iosModalEnter() },
-            exitTransition = { IOSNavAnimations.iosModalExit() },
-            popEnterTransition = { IOSNavAnimations.iosFadeEnter() },
-            popExitTransition = { IOSNavAnimations.iosModalExit() }
-        ) {
+        composable<Screen.Search> {
             SearchScreen(
                 onNavigateBack = { navController.popBackStack() },
                 onNavigateToPlayer = { songId -> },
@@ -87,12 +79,7 @@ fun AppNavGraph(
             )
         }
 
-        composable<Screen.Player>(
-            enterTransition = { IOSNavAnimations.iosSheetEnter() },
-            exitTransition = { IOSNavAnimations.iosSheetExit() },
-            popEnterTransition = { IOSNavAnimations.iosFadeEnter() },
-            popExitTransition = { IOSNavAnimations.iosSheetExit() }
-        ) {
+        composable<Screen.Player> {
             val uiState by playerViewModel.uiState.collectAsStateWithLifecycle()
             PlayerScreen(
                 uiState = uiState,
@@ -224,7 +211,14 @@ private fun NavGraphBuilder.settingsNavGraph(
     composable<SettingsDestination.Main> {
         SettingsScreen(
             onNavigateBack = { navController.popBackStack() },
-            onShowToast = onShowToast
+            onShowToast = onShowToast,
+            onNavigateToThemeSettings = { navController.navigate(SettingsDestination.Theme) }
+        )
+    }
+    
+    composable<SettingsDestination.Theme> {
+        ThemeSettingsScreen(
+            onNavigateBack = { navController.popBackStack() }
         )
     }
 }

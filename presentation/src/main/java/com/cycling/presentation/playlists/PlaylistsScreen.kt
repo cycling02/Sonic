@@ -14,11 +14,11 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.QueueMusic
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.MoreVert
-import androidx.compose.material.icons.filled.QueueMusic
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
@@ -44,10 +44,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.Dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.cycling.core.ui.components.M3FilledButton
+import com.cycling.core.ui.components.M3ListItem
+import com.cycling.core.ui.components.M3TopAppBar
 import com.cycling.domain.model.Playlist
-import com.cycling.presentation.components.IOSFilledButton
-import com.cycling.presentation.components.IOSListItem
-import com.cycling.presentation.components.IOSTopAppBar
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -106,9 +106,11 @@ fun PlaylistsScreen(
 
     Scaffold(
         topBar = {
-            IOSTopAppBar(
+            M3TopAppBar(
                 title = "播放列表",
-                onNavigateBack = onNavigateBack,
+                navigationIcon = Icons.AutoMirrored.Filled.ArrowBack,
+                navigationIconContentDescription = "返回",
+                onNavigationClick = onNavigateBack,
                 actions = {
                     IconButton(onClick = { viewModel.handleIntent(PlaylistsIntent.ShowAiCreateDialog) }) {
                         Icon(
@@ -154,8 +156,7 @@ fun PlaylistsScreen(
                     PlaylistItem(
                         playlist = playlist,
                         onClick = { viewModel.handleIntent(PlaylistsIntent.PlaylistClick(playlist)) },
-                        onRename = { viewModel.handleIntent(PlaylistsIntent.ShowRenameDialog(playlist)) },
-                        showDivider = playlist != uiState.playlists.last()
+                        onRename = { viewModel.handleIntent(PlaylistsIntent.ShowRenameDialog(playlist)) }
                     )
                 }
             }
@@ -254,16 +255,20 @@ private fun RenamePlaylistDialog(
 private fun PlaylistItem(
     playlist: Playlist,
     onClick: () -> Unit,
-    onRename: () -> Unit,
-    showDivider: Boolean
+    onRename: () -> Unit
 ) {
     var showMenu by remember { mutableStateOf(false) }
 
-    IOSListItem(
-        title = playlist.name,
+    M3ListItem(
+        headlineContent = {
+            Text(
+                text = playlist.name,
+                style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+        },
         onClick = onClick,
-        showDivider = showDivider,
-        leading = {
+        leadingContent = {
             Box(
                 modifier = Modifier.size(48.dp),
                 contentAlignment = Alignment.Center
@@ -276,7 +281,7 @@ private fun PlaylistItem(
                 )
             }
         },
-        trailing = {
+        trailingContent = {
             Box {
                 IconButton(onClick = { showMenu = true }) {
                     Icon(
@@ -330,10 +335,11 @@ private fun EmptyPlaylistsContent(
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
         Spacer(modifier = Modifier.height(24.dp))
-        IOSFilledButton(
-            text = "创建播放列表",
+        M3FilledButton(
             onClick = onCreateClick,
             icon = Icons.Default.Add
-        )
+        ) {
+            Text("创建播放列表")
+        }
     }
 }

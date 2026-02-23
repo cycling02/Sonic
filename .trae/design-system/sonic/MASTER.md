@@ -7,57 +7,109 @@
 ---
 
 **Project:** Sonic
-**Generated:** 2026-02-22 07:47:36
+**Generated:** 2026-02-22
 **Category:** Music Streaming
+**Design System:** Material Design 3 Expressive
 
 ---
 
 ## Global Rules
 
-### Color Palette
+### Color Palette (Material 3)
 
-| Role | Hex | CSS Variable |
-|------|-----|--------------|
-| Primary | `#1E1B4B` | `--color-primary` |
-| Secondary | `#4338CA` | `--color-secondary` |
-| CTA/Accent | `#22C55E` | `--color-cta` |
-| Background | `#0F0F23` | `--color-background` |
-| Text | `#F8FAFC` | `--color-text` |
+#### Light Theme
+| Role | Hex | Usage |
+|------|-----|-------|
+| Primary | `#6750A4` | Primary actions, FAB |
+| On Primary | `#FFFFFF` | Text on primary |
+| Primary Container | `#EADDFF` | Tonal buttons, selection |
+| Secondary | `#625B71` | Secondary actions |
+| Secondary Container | `#E8DEF8` | Chips, selection |
+| Tertiary | `#7D5260` | Accent elements |
+| Error | `#B3261E` | Error states |
+| Surface | `#FFFBFE` | Background |
+| Surface Variant | `#E7E0EC` | Cards, elevated surfaces |
+| Outline | `#79747E` | Borders, dividers |
 
-**Color Notes:** Dark audio + play green
+#### Dark Theme
+| Role | Hex | Usage |
+|------|-----|-------|
+| Primary | `#D0BCFF` | Primary actions, FAB |
+| On Primary | `#381E72` | Text on primary |
+| Primary Container | `#4F378B` | Tonal buttons, selection |
+| Secondary | `#CCC2DC` | Secondary actions |
+| Surface | `#1C1B1F` | Background |
+| Surface Variant | `#49454F` | Cards, elevated surfaces |
 
-### Typography
+#### Expressive Accent Colors
+| Name | Hex | Usage |
+|------|-----|-------|
+| Red | `#FF375F` | Music, favorites, playing indicator |
+| Orange | `#FF9F0A` | Warnings, highlights |
+| Yellow | `#FFD60A` | Accents |
+| Green | `#30D158` | Success, shuffle |
+| Teal | `#64D2FF` | Albums |
+| Blue | `#0A84FF` | Artists |
+| Indigo | `#5E5CE6` | Folders |
+| Purple | `#BF5AF2` | Playlists |
+| Pink | `#FF453A` | My Music |
 
-- **Heading Font:** Righteous
-- **Body Font:** Poppins
-- **Mood:** music, entertainment, fun, energetic, bold, performance
-- **Google Fonts:** [Righteous + Poppins](https://fonts.google.com/share?selection.family=Poppins:wght@300;400;500;600;700|Righteous)
+### Typography (Material 3)
 
-**CSS Import:**
-```css
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Righteous&display=swap');
-```
+- **Font Family:** System default (Roboto on Android)
+- **Scale:** Material 3 Type Scale
 
-### Spacing Variables
+| Style | Size | Weight | Line Height | Usage |
+|-------|------|--------|-------------|-------|
+| Display Large | 57sp | Regular | 64sp | Hero headlines |
+| Display Medium | 45sp | Regular | 52sp | Large titles |
+| Display Small | 36sp | Regular | 44sp | Section headers |
+| Headline Large | 32sp | Regular | 40sp | Page titles |
+| Headline Medium | 28sp | Regular | 36sp | Card titles |
+| Headline Small | 24sp | Regular | 32sp | Dialog titles |
+| Title Large | 22sp | Medium | 28sp | App bar titles |
+| Title Medium | 16sp | Medium | 24sp | List item titles |
+| Title Small | 14sp | Medium | 20sp | Small titles |
+| Body Large | 16sp | Regular | 24sp | Main content |
+| Body Medium | 14sp | Regular | 20sp | Secondary content |
+| Body Small | 12sp | Regular | 16sp | Captions |
+| Label Large | 14sp | Medium | 20sp | Button text |
+| Label Medium | 12sp | Medium | 16sp | Navigation labels |
+| Label Small | 11sp | Medium | 16sp | Small labels |
+
+### Spacing System
 
 | Token | Value | Usage |
 |-------|-------|-------|
-| `--space-xs` | `4px` / `0.25rem` | Tight gaps |
-| `--space-sm` | `8px` / `0.5rem` | Icon gaps, inline spacing |
-| `--space-md` | `16px` / `1rem` | Standard padding |
-| `--space-lg` | `24px` / `1.5rem` | Section padding |
-| `--space-xl` | `32px` / `2rem` | Large gaps |
-| `--space-2xl` | `48px` / `3rem` | Section margins |
-| `--space-3xl` | `64px` / `4rem` | Hero padding |
+| `none` | 0dp | - |
+| `extraSmall` | 4dp | Tight gaps, icon padding |
+| `small` | 8dp | Icon gaps, inline spacing |
+| `medium` | 16dp | Standard padding |
+| `large` | 24dp | Section padding |
+| `extraLarge` | 32dp | Large gaps |
+| `extraExtraLarge` | 48dp | Section margins |
+| `extraExtraExtraLarge` | 64dp | Hero padding |
 
-### Shadow Depths
+### Shape System
+
+| Token | Value | Usage |
+|-------|-------|-------|
+| `cornerSmall` | 8dp | Small components |
+| `cornerMedium` | 12dp | Buttons, cards |
+| `cornerLarge` | 16dp | Large cards, FAB |
+| `cornerExtraLarge` | 28dp | Search bars |
+| `cornerFull` | 50% | Pills, avatars |
+
+### Elevation System
 
 | Level | Value | Usage |
 |-------|-------|-------|
-| `--shadow-sm` | `0 1px 2px rgba(0,0,0,0.05)` | Subtle lift |
-| `--shadow-md` | `0 4px 6px rgba(0,0,0,0.1)` | Cards, buttons |
-| `--shadow-lg` | `0 10px 15px rgba(0,0,0,0.1)` | Modals, dropdowns |
-| `--shadow-xl` | `0 20px 25px rgba(0,0,0,0.15)` | Hero images, featured cards |
+| Level 0 | 0dp | Flat surfaces |
+| Level 1 | 1dp | Cards (rest) |
+| Level 2 | 3dp | Cards (hover) |
+| Level 3 | 6dp | FAB, menus |
+| Level 4 | 8dp | Dialogs |
+| Level 5 | 12dp | Modals |
 
 ---
 
@@ -65,128 +117,130 @@
 
 ### Buttons
 
-```css
-/* Primary Button */
-.btn-primary {
-  background: #22C55E;
-  color: white;
-  padding: 12px 24px;
-  border-radius: 8px;
-  font-weight: 600;
-  transition: all 200ms ease;
-  cursor: pointer;
-}
+**Filled Button (Primary)**
+- Shape: cornerMedium (12dp)
+- Min Height: 40dp
+- Padding: 16dp horizontal, 10dp vertical
+- Colors: Primary container
+- Animation: Scale 0.95x on press (spring)
 
-.btn-primary:hover {
-  opacity: 0.9;
-  transform: translateY(-1px);
-}
+**Extended FAB**
+- Shape: cornerLarge (16dp)
+- Height: 56dp (standard) / 48dp (small)
+- Shadow: 6dp elevation
+- Animation: Expand/collapse spring animation
 
-/* Secondary Button */
-.btn-secondary {
-  background: transparent;
-  color: #1E1B4B;
-  border: 2px solid #1E1B4B;
-  padding: 12px 24px;
-  border-radius: 8px;
-  font-weight: 600;
-  transition: all 200ms ease;
-  cursor: pointer;
-}
-```
+**Segmented Button**
+- Shape: cornerExtraLarge (28dp, pill)
+- Selected: Secondary container background
 
 ### Cards
 
-```css
-.card {
-  background: #0F0F23;
-  border-radius: 12px;
-  padding: 24px;
-  box-shadow: var(--shadow-md);
-  transition: all 200ms ease;
-  cursor: pointer;
-}
+**Elevated Card**
+- Shape: cornerMedium (12dp)
+- Shadow: 1dp (rest) / 2dp (hover)
+- Animation: Scale 0.95x on press
 
-.card:hover {
-  box-shadow: var(--shadow-lg);
-  transform: translateY(-2px);
-}
-```
+**Media Card (Album/Playlist)**
+- Width: 160dp (standard)
+- Aspect Ratio: 1:1
+- Shape: cornerMedium (12dp)
+- Animation: Scale 0.95x on press
 
-### Inputs
+**Artist Card**
+- Avatar Size: 100dp
+- Shape: Circle (cornerFull)
+- Animation: Scale 0.95x on press
 
-```css
-.input {
-  padding: 12px 16px;
-  border: 1px solid #E2E8F0;
-  border-radius: 8px;
-  font-size: 16px;
-  transition: border-color 200ms ease;
-}
+### Navigation
 
-.input:focus {
-  border-color: #1E1B4B;
-  outline: none;
-  box-shadow: 0 0 0 3px #1E1B4B20;
-}
-```
+**Top App Bar**
+- Height: 64dp (standard) / 152dp (large)
+- Background: Surface
+- Title: Title Large
+- Actions: 24dp icons
 
-### Modals
+**Navigation Bar**
+- Height: 80dp
+- Background: Surface Container
+- Items: 3-5
+- Selected Indicator: Pill shape
 
-```css
-.modal-overlay {
-  background: rgba(0, 0, 0, 0.5);
-  backdrop-filter: blur(4px);
-}
+### Lists
 
-.modal {
-  background: white;
-  border-radius: 16px;
-  padding: 32px;
-  box-shadow: var(--shadow-xl);
-  max-width: 500px;
-  width: 90%;
-}
-```
+**List Item**
+- Height: 56dp (one line) / 72dp (two lines) / 88dp (three lines)
+- Padding: 16dp horizontal
+- Leading Icon: 24dp
+- Trailing Icon: 24dp
+- Divider: Full width or indented
+
+### Player
+
+**Mini Player**
+- Height: 64dp
+- Background: Surface Container High
+- Progress Bar: 4dp, top
+- Artwork: 48dp, cornerSmall
+
+**Full Player**
+- Artwork: 85% width, cornerLarge
+- Play Button: 56dp, circle, accent color
+- Progress Bar: 4dp, draggable
+
+---
+
+## Motion System
+
+### Spring Animations
+
+| Type | Damping Ratio | Stiffness | Usage |
+|------|---------------|-----------|-------|
+| Default | 1.0 | Medium | Standard transitions |
+| Expressive | 0.8 | 400 | Buttons, cards |
+| Bouncy | 0.6 | 200 | Playful interactions |
+
+### Duration Guidelines
+
+| Type | Duration | Usage |
+|------|----------|-------|
+| Short | 150ms | Micro-interactions |
+| Medium | 300ms | Page transitions |
+| Long | 500ms | Complex animations |
+
+### Common Animations
+
+- **Button Press:** Scale 0.95x with spring
+- **Card Hover:** Scale 1.02x + elevation change
+- **Page Transition:** Slide + fade
+- **List Item Enter:** Staggered animation
+- **FAB Expand:** Morph animation
 
 ---
 
 ## Style Guidelines
 
-**Style:** Vibrant & Block-based
+**Style:** Material Design 3 Expressive
 
-**Keywords:** Bold, energetic, playful, block layout, geometric shapes, high color contrast, duotone, modern, energetic
+**Keywords:** Emotional, dynamic, personalized, natural motion, bold typography, rich shapes
 
-**Best For:** Startups, creative agencies, gaming, social media, youth-focused, entertainment, consumer
-
-**Key Effects:** Large sections (48px+ gaps), animated patterns, bold hover (color shift), scroll-snap, large type (32px+), 200-300ms
-
-### Page Pattern
-
-**Pattern Name:** Horizontal Scroll Journey
-
-- **Conversion Strategy:** Immersive product discovery. High engagement. Keep navigation visible.
-28,Bento Grid Showcase,bento,  grid,  features,  modular,  apple-style,  showcase", 1. Hero, 2. Bento Grid (Key Features), 3. Detail Cards, 4. Tech Specs, 5. CTA, Floating Action Button or Bottom of Grid, Card backgrounds: #F5F5F7 or Glass. Icons: Vibrant brand colors. Text: Dark., Hover card scale (1.02), video inside cards, tilt effect, staggered reveal, Scannable value props. High information density without clutter. Mobile stack.
-29,Interactive 3D Configurator,3d,  configurator,  customizer,  interactive,  product", 1. Hero (Configurator), 2. Feature Highlight (synced), 3. Price/Specs, 4. Purchase, Inside Configurator UI + Sticky Bottom Bar, Neutral studio background. Product: Realistic materials. UI: Minimal overlay., Real-time rendering, material swap animation, camera rotate/zoom, light reflection, Increases ownership feeling. 360 view reduces return rates. Direct add-to-cart.
-30,AI-Driven Dynamic Landing,ai,  dynamic,  personalized,  adaptive,  generative", 1. Prompt/Input Hero, 2. Generated Result Preview, 3. How it Works, 4. Value Prop, Input Field (Hero) + 'Try it' Buttons, Adaptive to user input. Dark mode for compute feel. Neon accents., Typing text effects, shimmering generation loaders, morphing layouts, Immediate value demonstration. 'Show, don't tell'. Low friction start.
-- **CTA Placement:** Floating Sticky CTA or End of Horizontal Track
-- **Section Order:** 1. Intro (Vertical), 2. The Journey (Horizontal Track), 3. Detail Reveal, 4. Vertical Footer
+**Key Effects:**
+- Spring-based physics animations
+- Dynamic color from wallpaper
+- Large touch targets (48dp minimum)
+- Expressive typography scale
+- Smooth state transitions
 
 ---
 
 ## Anti-Patterns (Do NOT Use)
 
-- ❌ Flat design without depth
-- ❌ Text-heavy pages
-
-### Additional Forbidden Patterns
-
-- ❌ **Emojis as icons** — Use SVG icons (Heroicons, Lucide, Simple Icons)
-- ❌ **Missing cursor:pointer** — All clickable elements must have cursor:pointer
-- ❌ **Layout-shifting hovers** — Avoid scale transforms that shift layout
-- ❌ **Low contrast text** — Maintain 4.5:1 minimum contrast ratio
-- ❌ **Instant state changes** — Always use transitions (150-300ms)
-- ❌ **Invisible focus states** — Focus states must be visible for a11y
+- ❌ iOS-style navigation patterns
+- ❌ Fixed pixel colors (use Material theme colors)
+- ❌ Instant state changes (always animate)
+- ❌ Small touch targets (< 48dp)
+- ❌ Low contrast text
+- ❌ Missing hover/focus states
 
 ---
 
@@ -194,13 +248,13 @@
 
 Before delivering any UI code, verify:
 
-- [ ] No emojis used as icons (use SVG instead)
-- [ ] All icons from consistent icon set (Heroicons/Lucide)
-- [ ] `cursor-pointer` on all clickable elements
-- [ ] Hover states with smooth transitions (150-300ms)
-- [ ] Light mode: text contrast 4.5:1 minimum
-- [ ] Focus states visible for keyboard navigation
-- [ ] `prefers-reduced-motion` respected
-- [ ] Responsive: 375px, 768px, 1024px, 1440px
-- [ ] No content hidden behind fixed navbars
-- [ ] No horizontal scroll on mobile
+- [ ] Uses Material 3 theme colors
+- [ ] All touch targets ≥ 48dp
+- [ ] Spring animations on interactive elements
+- [ ] Dark mode support
+- [ ] Dynamic color support (Material You)
+- [ ] Proper elevation hierarchy
+- [ ] Consistent shape usage
+- [ ] Typography follows Material 3 scale
+- [ ] Accessibility: contrast ratios met
+- [ ] Responsive layouts tested
