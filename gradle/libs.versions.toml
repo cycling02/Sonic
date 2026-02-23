@@ -26,7 +26,7 @@ lifecycleRuntimeCompose = "2.8.7"
 kotlinxSerialization = "1.7.3"
 kotlinxCoroutines = "1.8.1"
 datastorePreferences = "1.1.1"
-composeMarkdown = "0.5.4"
+composeMarkdown = "0.5.8"
 mockk = "1.13.12"
 turbine = "1.1.0"
 
