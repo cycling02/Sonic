@@ -13,7 +13,7 @@ ksp = "2.0.21-1.0.28"
 
 room = "2.6.1"
 appcompat = "1.6.1"
-material = "1.10.0"
+material = "1.13.0"
 palette = "1.0.0"
 
 hilt = "2.52"
