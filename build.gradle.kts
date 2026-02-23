@@ -5,5 +5,5 @@ plugins {
     alias(libs.plugins.ksp) apply false
     alias(libs.plugins.android.library) apply false
     alias(libs.plugins.hilt.android) apply false
-    kotlin("android") version "2.0.21" apply false
+    kotlin("android") version "2.3.10" apply false
 }
