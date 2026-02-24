@@ -39,7 +39,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil3.compose.AsyncImage
 import com.cycling.core.ui.components.M3LargeTopAppBar
-import com.cycling.core.ui.theme.M3ExpressiveColors
+import com.cycling.core.ui.theme.M3SemanticColors
 import com.cycling.core.ui.theme.M3Shapes
 import com.cycling.core.ui.theme.M3Spacing
 import com.cycling.presentation.components.PlayActionButtons
@@ -87,7 +87,7 @@ fun AlbumDetailScreen(
                         Icon(
                             imageVector = Icons.Default.AutoAwesome,
                             contentDescription = "AI 介绍",
-                            tint = M3ExpressiveColors.Purple
+                            tint = M3SemanticColors.Purple
                         )
                     }
                 }
@@ -184,7 +184,7 @@ private fun AlbumHeader(
                         imageVector = Icons.Default.Album,
                         contentDescription = null,
                         modifier = Modifier.size(80.dp),
-                        tint = M3ExpressiveColors.Teal
+                        tint = M3SemanticColors.Teal
                     )
                 }
             }

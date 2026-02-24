@@ -49,9 +49,6 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import com.cycling.core.ui.theme.M3ComponentSize
-import com.cycling.core.ui.theme.M3ExpressiveColors
-import com.cycling.core.ui.theme.M3ExpressiveComponentSize
-import com.cycling.core.ui.theme.M3ExpressiveShapes
 import com.cycling.core.ui.theme.M3Motion
 import com.cycling.core.ui.theme.M3Shapes
 import com.cycling.core.ui.theme.M3Spacing
@@ -154,8 +151,7 @@ fun M3MediaCard(
     modifier: Modifier = Modifier,
     width: Dp = M3ComponentSize.mediaCardWidth,
     placeholderIcon: ImageVector = Icons.Outlined.MusicNote,
-    shape: Shape = M3Shapes.cornerMedium,
-    expressive: Boolean = false
+    shape: Shape = M3Shapes.cornerMedium
 ) {
     val interactionSource = remember { MutableInteractionSource() }
     val isPressed by interactionSource.collectIsPressedAsState()
@@ -163,8 +159,8 @@ fun M3MediaCard(
     val scale by animateFloatAsState(
         targetValue = if (isPressed) M3Motion.buttonPressScale else 1f,
         animationSpec = spring(
-            dampingRatio = if (expressive) 0.6f else 0.8f,
-            stiffness = if (expressive) 300f else 400f
+            dampingRatio = 0.8f,
+            stiffness = 400f
         ),
         label = "scale"
     )
@@ -232,7 +228,6 @@ fun M3MediaCard(
 enum class M3AvatarShape {
     Circle,
     RoundedSquare,
-    SoftSquare,
     Pill
 }
 
@@ -242,9 +237,8 @@ fun M3ArtistCard(
     artwork: String?,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
-    size: Dp = M3ExpressiveComponentSize.avatarExtraLargeSize,
-    avatarShape: M3AvatarShape = M3AvatarShape.Circle,
-    expressive: Boolean = false
+    size: Dp = M3ComponentSize.artistCardSize,
+    avatarShape: M3AvatarShape = M3AvatarShape.Circle
 ) {
     val interactionSource = remember { MutableInteractionSource() }
     val isPressed by interactionSource.collectIsPressedAsState()
@@ -252,8 +246,8 @@ fun M3ArtistCard(
     val scale by animateFloatAsState(
         targetValue = if (isPressed) M3Motion.buttonPressScale else 1f,
         animationSpec = spring(
-            dampingRatio = if (expressive) 0.6f else 0.8f,
-            stiffness = if (expressive) 300f else 400f
+            dampingRatio = 0.8f,
+            stiffness = 400f
         ),
         label = "scale"
     )
@@ -261,7 +255,6 @@ fun M3ArtistCard(
     val shapeModifier = when (avatarShape) {
         M3AvatarShape.Circle -> Modifier.clip(CircleShape)
         M3AvatarShape.RoundedSquare -> Modifier.clip(M3Shapes.cornerMedium)
-        M3AvatarShape.SoftSquare -> Modifier.clip(M3ExpressiveShapes.softSquare)
         M3AvatarShape.Pill -> Modifier.clip(RoundedCornerShape(50))
     }
 
@@ -283,8 +276,8 @@ fun M3ArtistCard(
                 .background(
                     Brush.linearGradient(
                         colors = listOf(
-                            M3ExpressiveColors.Pink,
-                            M3ExpressiveColors.Purple
+                            MaterialTheme.colorScheme.primary,
+                            MaterialTheme.colorScheme.tertiary
                         )
                     )
                 ),

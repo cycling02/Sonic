@@ -29,7 +29,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.cycling.core.ui.components.M3ListItemTwoLine
 import com.cycling.core.ui.components.M3TopAppBar
-import com.cycling.core.ui.theme.M3ExpressiveColors
+import com.cycling.core.ui.theme.M3SemanticColors
 import com.cycling.core.ui.theme.M3Spacing
 import com.cycling.domain.model.FolderItem
 import com.cycling.domain.model.Song
@@ -97,7 +97,7 @@ fun FolderScreen(
                         Icon(
                             imageVector = Icons.Default.Folder,
                             contentDescription = null,
-                            tint = M3ExpressiveColors.Blue,
+                            tint = M3SemanticColors.Blue,
                             modifier = Modifier.height(48.dp)
                         )
                         Spacer(modifier = Modifier.height(16.dp))
@@ -160,7 +160,7 @@ private fun FolderItem(
         headlineText = folder.name,
         supportingText = "${folder.songCount} 首歌曲",
         leadingIcon = Icons.Default.Folder,
-        leadingIconBackgroundColor = M3ExpressiveColors.Blue.copy(alpha = 0.2f),
+        leadingIconBackgroundColor = M3SemanticColors.Blue.copy(alpha = 0.2f),
         onClick = onClick
     )
 }

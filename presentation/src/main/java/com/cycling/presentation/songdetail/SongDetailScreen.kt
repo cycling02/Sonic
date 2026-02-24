@@ -60,7 +60,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil3.compose.AsyncImage
 import com.cycling.core.ui.components.M3FilledButton
-import com.cycling.core.ui.theme.M3ExpressiveColors
+import com.cycling.core.ui.theme.M3SemanticColors
 import com.cycling.domain.model.AudioMetadata
 import com.cycling.domain.model.Song
 import com.cycling.presentation.components.formatDuration
@@ -276,7 +276,7 @@ private fun EditModeContent(
                         imageVector = Icons.Default.MusicNote,
                         contentDescription = null,
                         modifier = Modifier.size(80.dp),
-                        tint = M3ExpressiveColors.Red
+                        tint = M3SemanticColors.Red
                     )
                 }
             }
@@ -400,7 +400,7 @@ private fun DiscardChangesDialog(
             TextButton(onClick = onDiscard) {
                 Text(
                     text = "放弃",
-                    color = M3ExpressiveColors.Red
+                    color = M3SemanticColors.Red
                 )
             }
         },
@@ -444,7 +444,7 @@ private fun SongHeader(song: Song) {
                         imageVector = Icons.Default.MusicNote,
                         contentDescription = null,
                         modifier = Modifier.size(100.dp),
-                        tint = M3ExpressiveColors.Red
+                        tint = M3SemanticColors.Red
                     )
                 }
             }
@@ -506,14 +506,14 @@ private fun ActionButtons(
                 .size(48.dp)
                 .clip(RoundedCornerShape(12.dp))
                 .background(
-                    if (isFavorite) M3ExpressiveColors.Red.copy(alpha = 0.1f)
+                    if (isFavorite) M3SemanticColors.Red.copy(alpha = 0.1f)
                     else MaterialTheme.colorScheme.surfaceVariant
                 )
         ) {
             Icon(
                 imageVector = if (isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
                 contentDescription = if (isFavorite) "取消收藏" else "收藏",
-                tint = if (isFavorite) M3ExpressiveColors.Red else MaterialTheme.colorScheme.onSurfaceVariant
+                tint = if (isFavorite) M3SemanticColors.Red else MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
 

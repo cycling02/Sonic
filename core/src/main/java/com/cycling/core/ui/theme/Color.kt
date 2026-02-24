@@ -100,7 +100,7 @@ object M3DarkColors {
     val Scrim = Color(0xFF000000)
 }
 
-object M3ExpressiveColors {
+object M3SemanticColors {
     val Pink = Color(0xFFFF375F)
     val Orange = Color(0xFFFF9F0A)
     val Yellow = Color(0xFFFFD60A)
@@ -118,12 +118,12 @@ object M3ExpressiveColors {
 }
 
 object M3GradientColors {
-    val pinkToPurple = listOf(M3ExpressiveColors.Pink, M3ExpressiveColors.Purple)
-    val blueToTeal = listOf(M3ExpressiveColors.Blue, M3ExpressiveColors.Teal)
-    val greenToTeal = listOf(M3ExpressiveColors.Green, M3ExpressiveColors.Teal)
-    val orangeToPink = listOf(M3ExpressiveColors.Orange, M3ExpressiveColors.Pink)
-    val indigoToPurple = listOf(M3ExpressiveColors.Indigo, M3ExpressiveColors.Purple)
-    val redToOrange = listOf(M3ExpressiveColors.Red, M3ExpressiveColors.Orange)
+    val pinkToPurple = listOf(M3SemanticColors.Pink, M3SemanticColors.Purple)
+    val blueToTeal = listOf(M3SemanticColors.Blue, M3SemanticColors.Teal)
+    val greenToTeal = listOf(M3SemanticColors.Green, M3SemanticColors.Teal)
+    val orangeToPink = listOf(M3SemanticColors.Orange, M3SemanticColors.Pink)
+    val indigoToPurple = listOf(M3SemanticColors.Indigo, M3SemanticColors.Purple)
+    val redToOrange = listOf(M3SemanticColors.Red, M3SemanticColors.Orange)
 
     fun createGradient(
         startColor: Color,

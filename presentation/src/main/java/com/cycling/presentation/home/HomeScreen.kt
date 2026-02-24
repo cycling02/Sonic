@@ -42,11 +42,11 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.cycling.core.ui.components.M3LargeTopAppBar
-import com.cycling.core.ui.components.M3ListItemExpressive
+import com.cycling.core.ui.components.M3ListItemWithTrailing
 import com.cycling.core.ui.components.M3TrailingContentType
 import com.cycling.core.ui.components.M3Container
 import com.cycling.core.ui.components.M3ContainerStyle
-import com.cycling.core.ui.theme.M3ExpressiveColors
+import com.cycling.core.ui.theme.M3SemanticColors
 import com.cycling.core.ui.theme.M3Spacing
 import com.cycling.domain.model.PlayerState
 import com.cycling.presentation.player.MiniPlayer
@@ -187,47 +187,47 @@ private fun QuickAccessSection(
             modifier = Modifier.fillMaxWidth(),
             verticalArrangement = Arrangement.spacedBy(M3Spacing.extraSmall)
         ) {
-            M3ListItemExpressive(
+            M3ListItemWithTrailing(
                 headlineText = "歌曲",
                 onClick = onSongsClick,
                 leadingIcon = Icons.Outlined.MusicNote,
-                leadingIconBackgroundColor = M3ExpressiveColors.Red,
+                leadingIconBackgroundColor = M3SemanticColors.Red,
                 trailingType = M3TrailingContentType.Chevron
             )
-            M3ListItemExpressive(
+            M3ListItemWithTrailing(
                 headlineText = "专辑",
                 onClick = onAlbumsClick,
                 leadingIcon = Icons.Outlined.Album,
-                leadingIconBackgroundColor = M3ExpressiveColors.Teal,
+                leadingIconBackgroundColor = M3SemanticColors.Teal,
                 trailingType = M3TrailingContentType.Chevron
             )
-            M3ListItemExpressive(
+            M3ListItemWithTrailing(
                 headlineText = "歌手",
                 onClick = onArtistsClick,
                 leadingIcon = Icons.Outlined.Person,
-                leadingIconBackgroundColor = M3ExpressiveColors.Blue,
+                leadingIconBackgroundColor = M3SemanticColors.Blue,
                 trailingType = M3TrailingContentType.Chevron
             )
-            M3ListItemExpressive(
+            M3ListItemWithTrailing(
                 headlineText = "播放列表",
                 onClick = onPlaylistsClick,
                 leadingIcon = Icons.AutoMirrored.Filled.QueueMusic,
-                leadingIconBackgroundColor = M3ExpressiveColors.Green,
+                leadingIconBackgroundColor = M3SemanticColors.Green,
                 trailingType = M3TrailingContentType.Chevron
             )
-            M3ListItemExpressive(
+            M3ListItemWithTrailing(
                 headlineText = "文件夹",
                 onClick = onFoldersClick,
                 leadingIcon = Icons.Default.Folder,
-                leadingIconBackgroundColor = M3ExpressiveColors.Indigo,
+                leadingIconBackgroundColor = M3SemanticColors.Indigo,
                 trailingType = M3TrailingContentType.Chevron
             )
-            M3ListItemExpressive(
+            M3ListItemWithTrailing(
                 headlineText = "我的音乐",
                 supportingText = "喜欢、最近播放、最常播放",
                 onClick = onMyMusicClick,
                 leadingIcon = Icons.Default.Favorite,
-                leadingIconBackgroundColor = M3ExpressiveColors.Pink,
+                leadingIconBackgroundColor = M3SemanticColors.Pink,
                 trailingType = M3TrailingContentType.Chevron
             )
         }

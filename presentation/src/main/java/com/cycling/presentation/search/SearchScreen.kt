@@ -67,7 +67,7 @@ import com.cycling.presentation.components.SongListItem
 import com.cycling.presentation.components.formatDuration
 import com.cycling.core.ui.theme.M3Spacing
 import com.cycling.core.ui.theme.M3Shapes
-import com.cycling.core.ui.theme.M3ExpressiveColors
+import com.cycling.core.ui.theme.M3SemanticColors
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -699,7 +699,7 @@ private fun AlbumResultItem(
                     imageVector = Icons.Default.Album,
                     contentDescription = null,
                     modifier = Modifier.size(28.dp),
-                    tint = M3ExpressiveColors.Teal
+                    tint = M3SemanticColors.Teal
                 )
             }
         }
@@ -773,7 +773,7 @@ private fun ArtistResultItem(
                     imageVector = Icons.Default.Person,
                     contentDescription = null,
                     modifier = Modifier.size(28.dp),
-                    tint = M3ExpressiveColors.Blue
+                    tint = M3SemanticColors.Blue
                 )
             }
         }

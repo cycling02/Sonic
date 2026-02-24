@@ -54,7 +54,6 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.cycling.core.ui.theme.M3ComponentSize
-import com.cycling.core.ui.theme.M3ExpressiveComponentSize
 import com.cycling.core.ui.theme.M3Motion
 import com.cycling.core.ui.theme.M3Shapes
 import com.cycling.core.ui.theme.M3Theme
@@ -334,7 +333,7 @@ fun M3Toolbar(
     Surface(
         modifier = modifier
             .fillMaxWidth()
-            .height(M3ExpressiveComponentSize.toolbarHeight),
+            .height(56.dp),
         color = backgroundColor,
         contentColor = MaterialTheme.colorScheme.onSurface
     ) {

@@ -63,10 +63,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.cycling.core.ui.theme.M3ComponentSize
-import com.cycling.core.ui.theme.M3ExpressiveComponentSize
 import com.cycling.core.ui.theme.M3Motion
 import com.cycling.core.ui.theme.M3Shapes
-import com.cycling.core.ui.theme.M3SpringTokens
 import com.cycling.core.ui.theme.M3Theme
 
 @Composable
@@ -845,7 +843,7 @@ fun M3FABMenu(
     modifier: Modifier = Modifier,
     direction: M3FABMenuDirection = M3FABMenuDirection.Up,
     showLabels: Boolean = true,
-    fabSize: Dp = M3ExpressiveComponentSize.fabStandardSize
+    fabSize: Dp = M3ComponentSize.fabStandardSize
 ) {
     val fabInteraction = remember { MutableInteractionSource() }
     val isFabPressed by fabInteraction.collectIsPressedAsState()

@@ -48,7 +48,6 @@ import com.cycling.core.ui.theme.M3Alpha
 import com.cycling.core.ui.theme.M3ComponentSize
 import com.cycling.core.ui.theme.M3Motion
 import com.cycling.core.ui.theme.M3Spacing
-import com.cycling.core.ui.theme.M3SpringTokens
 import com.cycling.core.ui.theme.M3Theme
 
 @Composable
@@ -59,8 +58,7 @@ fun M3ListItem(
     supportingContent: @Composable (() -> Unit)? = null,
     leadingContent: @Composable (() -> Unit)? = null,
     trailingContent: @Composable (() -> Unit)? = null,
-    onClick: (() -> Unit)? = null,
-    expressive: Boolean = false
+    onClick: (() -> Unit)? = null
 ) {
     val interactionSource = remember { MutableInteractionSource() }
     val isPressed by interactionSource.collectIsPressedAsState()
@@ -68,8 +66,8 @@ fun M3ListItem(
     val scale by animateFloatAsState(
         targetValue = if (isPressed && onClick != null) M3Motion.buttonPressScale else 1f,
         animationSpec = spring(
-            dampingRatio = if (expressive) 0.6f else 0.8f,
-            stiffness = if (expressive) 300f else 400f
+            dampingRatio = 0.8f,
+            stiffness = 400f
         ),
         label = "scale"
     )
@@ -451,7 +449,7 @@ fun M3TrailingBadge(
 }
 
 @Composable
-fun M3ListItemExpressive(
+fun M3ListItemWithTrailing(
     headlineText: String,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
@@ -515,31 +513,30 @@ fun M3ListItemExpressive(
             }
         },
         trailingContent = trailingContent,
-        onClick = onClick,
-        expressive = true
+        onClick = onClick
     )
 }
 
 @Preview(showBackground = true)
 @Composable
-private fun M3ListItemExpressivePreview() {
+private fun M3ListItemWithTrailingPreview() {
     M3Theme {
         Column {
-            M3ListItemExpressive(
+            M3ListItemWithTrailing(
                 headlineText = "With Chevron",
                 supportingText = "Supporting text",
                 leadingIcon = Icons.Default.MusicNote,
                 trailingType = M3TrailingContentType.Chevron,
                 onClick = {}
             )
-            M3ListItemExpressive(
+            M3ListItemWithTrailing(
                 headlineText = "With Badge",
                 leadingIcon = Icons.Default.Album,
                 trailingType = M3TrailingContentType.Badge,
                 trailingBadgeCount = 12,
                 onClick = {}
             )
-            M3ListItemExpressive(
+            M3ListItemWithTrailing(
                 headlineText = "With Text",
                 supportingText = "Supporting text",
                 leadingIcon = Icons.Default.Person,

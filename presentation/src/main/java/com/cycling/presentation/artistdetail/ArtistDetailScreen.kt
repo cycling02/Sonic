@@ -49,7 +49,7 @@ import com.cycling.core.ui.components.M3FilledButton
 import com.cycling.core.ui.components.M3LargeTopAppBar
 import com.cycling.core.ui.components.M3ListItemWithAvatar
 import com.cycling.core.ui.theme.M3ComponentSize
-import com.cycling.core.ui.theme.M3ExpressiveColors
+import com.cycling.core.ui.theme.M3SemanticColors
 import com.cycling.core.ui.theme.M3Spacing
 import com.cycling.domain.model.Song
 
@@ -95,7 +95,7 @@ fun ArtistDetailScreen(
                         Icon(
                             imageVector = Icons.Default.AutoAwesome,
                             contentDescription = "AI 介绍",
-                            tint = M3ExpressiveColors.Purple
+                            tint = M3SemanticColors.Purple
                         )
                     }
                 }
@@ -218,7 +218,7 @@ private fun M3SongListItem(
                         imageVector = Icons.Default.MusicNote,
                         contentDescription = null,
                         modifier = Modifier.size(24.dp),
-                        tint = M3ExpressiveColors.Red
+                        tint = M3SemanticColors.Red
                     )
                 }
             }
@@ -261,7 +261,7 @@ private fun ArtistHeader(
                         imageVector = Icons.Default.Person,
                         contentDescription = null,
                         modifier = Modifier.size(64.dp),
-                        tint = M3ExpressiveColors.Blue
+                        tint = M3SemanticColors.Blue
                     )
                 }
             }

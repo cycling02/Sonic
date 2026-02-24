@@ -54,7 +54,7 @@ import com.cycling.core.ui.components.M3FilledButton
 import com.cycling.core.ui.components.M3LargeTopAppBar
 import com.cycling.core.ui.components.M3ListItemWithAvatar
 import com.cycling.core.ui.theme.M3ComponentSize
-import com.cycling.core.ui.theme.M3ExpressiveColors
+import com.cycling.core.ui.theme.M3SemanticColors
 import com.cycling.core.ui.theme.M3Shapes
 import com.cycling.core.ui.theme.M3Spacing
 import com.cycling.domain.model.Song
@@ -224,7 +224,7 @@ private fun PlaylistHeader(
                     imageVector = Icons.AutoMirrored.Filled.QueueMusic,
                     contentDescription = null,
                     modifier = Modifier.size(80.dp),
-                    tint = M3ExpressiveColors.Teal
+                    tint = M3SemanticColors.Teal
                 )
             }
         }
@@ -284,7 +284,7 @@ private fun M3SongListItemWithMenu(
                             imageVector = Icons.Default.MusicNote,
                             contentDescription = null,
                             modifier = Modifier.size(24.dp),
-                            tint = M3ExpressiveColors.Red
+                            tint = M3SemanticColors.Red
                         )
                     }
                 }

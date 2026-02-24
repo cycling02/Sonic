@@ -42,7 +42,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.cycling.core.ui.components.M3TopAppBar
-import com.cycling.core.ui.theme.M3ExpressiveColors
+import com.cycling.core.ui.theme.M3SemanticColors
 import com.cycling.core.ui.theme.M3Shapes
 import com.cycling.core.ui.theme.M3Spacing
 import com.cycling.domain.model.Song
@@ -206,7 +206,7 @@ private fun FavoritesContent(
     } else if (songs.isEmpty()) {
         EmptyState(
             icon = Icons.Default.Favorite,
-            iconTint = M3ExpressiveColors.Pink,
+            iconTint = M3SemanticColors.Pink,
             title = "还没有喜欢的歌曲",
             subtitle = "在播放器中点击心形图标来收藏歌曲"
         )
@@ -219,7 +219,7 @@ private fun FavoritesContent(
                     Icon(
                         imageVector = Icons.Default.Favorite,
                         contentDescription = "取消收藏",
-                        tint = M3ExpressiveColors.Red
+                        tint = M3SemanticColors.Red
                     )
                 }
             }
@@ -243,7 +243,7 @@ private fun RecentlyPlayedContent(
     } else if (songs.isEmpty()) {
         EmptyState(
             icon = Icons.Default.History,
-            iconTint = M3ExpressiveColors.Orange,
+            iconTint = M3SemanticColors.Orange,
             title = "还没有播放记录",
             subtitle = "播放歌曲后会显示在这里"
         )
@@ -268,7 +268,7 @@ private fun MostPlayedContent(
     } else if (songs.isEmpty()) {
         EmptyState(
             icon = Icons.AutoMirrored.Filled.TrendingUp,
-            iconTint = M3ExpressiveColors.Purple,
+            iconTint = M3SemanticColors.Purple,
             title = "还没有播放统计",
             subtitle = "播放歌曲后会显示在这里"
         )

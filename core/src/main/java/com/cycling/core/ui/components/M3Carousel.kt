@@ -40,7 +40,6 @@ import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import com.cycling.core.ui.theme.M3ExpressiveComponentSize
 import com.cycling.core.ui.theme.M3Motion
 import com.cycling.core.ui.theme.M3Shapes
 import com.cycling.core.ui.theme.M3Spacing
@@ -55,8 +54,8 @@ data class M3CarouselItem(
 fun <T> M3Carousel(
     items: List<T>,
     modifier: Modifier = Modifier,
-    itemWidth: Dp = M3ExpressiveComponentSize.carouselItemWidth,
-    itemSpacing: Dp = M3ExpressiveComponentSize.carouselItemSpacing,
+    itemWidth: Dp = 280.dp,
+    itemSpacing: Dp = 16.dp,
     showIndicator: Boolean = true,
     itemContent: @Composable (T) -> Unit
 ) {

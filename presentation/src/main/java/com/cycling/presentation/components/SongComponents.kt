@@ -43,7 +43,7 @@ import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import com.cycling.core.ui.components.M3FilledButton
-import com.cycling.core.ui.theme.M3ExpressiveColors
+import com.cycling.core.ui.theme.M3SemanticColors
 import com.cycling.core.ui.theme.M3Motion
 import com.cycling.domain.model.Song
 
@@ -90,17 +90,16 @@ fun SongListItem(
     onMoreDismiss: () -> Unit = {},
     moreMenuItems: List<MenuItem> = emptyList(),
     onClick: (() -> Unit)? = null,
-    trailingContent: @Composable (() -> Unit)? = null,
-    expressive: Boolean = true
+    trailingContent: @Composable (() -> Unit)? = null
 ) {
     val interactionSource = remember { MutableInteractionSource() }
     val isPressed by interactionSource.collectIsPressedAsState()
     
     val scale by animateFloatAsState(
-        targetValue = if (isPressed && onClick != null && expressive) M3Motion.buttonPressScale else 1f,
+        targetValue = if (isPressed && onClick != null) M3Motion.buttonPressScale else 1f,
         animationSpec = spring(
-            dampingRatio = if (expressive) 0.6f else 0.8f,
-            stiffness = if (expressive) 300f else 400f
+            dampingRatio = 0.8f,
+            stiffness = 400f
         ),
         label = "scale"
     )
@@ -126,7 +125,7 @@ fun SongListItem(
         Box(
             modifier = Modifier
                 .size(48.dp)
-                .clip(RoundedCornerShape(if (expressive) 12.dp else 6.dp)),
+                .clip(RoundedCornerShape(6.dp)),
             contentAlignment = Alignment.Center
         ) {
             if (song.albumArt != null) {
@@ -147,7 +146,7 @@ fun SongListItem(
                         imageVector = Icons.Default.MusicNote,
                         contentDescription = null,
                         modifier = Modifier.size(24.dp),
-                        tint = M3ExpressiveColors.Red
+                        tint = M3SemanticColors.Red
                     )
                 }
             }

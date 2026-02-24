@@ -45,7 +45,7 @@ import coil3.compose.AsyncImage
 import com.cycling.domain.model.Song
 import com.cycling.core.ui.components.M3FilledButton
 import com.cycling.core.ui.components.M3SegmentedButtonRow
-import com.cycling.core.ui.theme.M3ExpressiveColors
+import com.cycling.core.ui.theme.M3SemanticColors
 
 enum class AiPlaylistCreationStep {
     SELECT_MODE,
@@ -504,7 +504,7 @@ private fun PreviewSongItem(
                         imageVector = Icons.Default.MusicNote,
                         contentDescription = null,
                         modifier = Modifier.size(20.dp),
-                        tint = M3ExpressiveColors.Red
+                        tint = M3SemanticColors.Red
                     )
                 }
             }

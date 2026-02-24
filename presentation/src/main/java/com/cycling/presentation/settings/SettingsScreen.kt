@@ -83,7 +83,7 @@ import com.cycling.core.ui.components.M3ListItemTwoLine
 import com.cycling.core.ui.components.M3OutlinedButton
 import com.cycling.core.ui.components.M3TextButton
 import com.cycling.core.ui.components.M3TopAppBar
-import com.cycling.core.ui.theme.M3ExpressiveColors
+import com.cycling.core.ui.theme.M3SemanticColors
 import com.cycling.core.ui.theme.M3Spacing
 import com.cycling.presentation.components.PieChart
 import com.cycling.presentation.components.PieChartData
@@ -178,7 +178,7 @@ fun SettingsScreen(
                             Icon(
                                 imageVector = Icons.Default.Add,
                                 contentDescription = "添加文件夹",
-                                tint = M3ExpressiveColors.Blue
+                                tint = M3SemanticColors.Blue
                             )
                         }
                     }
@@ -249,19 +249,19 @@ private fun MainSettingsContent(
             M3ListItemOneLine(
                 text = "扫描本地音乐",
                 leadingIcon = Icons.Default.Refresh,
-                leadingIconBackgroundColor = M3ExpressiveColors.Blue,
+                leadingIconBackgroundColor = M3SemanticColors.Blue,
                 onClick = onNavigateToScan
             )
             M3ListItemOneLine(
                 text = "排除文件夹",
                 leadingIcon = Icons.Default.Folder,
-                leadingIconBackgroundColor = M3ExpressiveColors.Orange,
+                leadingIconBackgroundColor = M3SemanticColors.Orange,
                 onClick = onNavigateToExcludeFolders
             )
             M3ListItemOneLine(
                 text = "音乐库统计",
                 leadingIcon = Icons.Default.BarChart,
-                leadingIconBackgroundColor = M3ExpressiveColors.Green,
+                leadingIconBackgroundColor = M3SemanticColors.Green,
                 onClick = onNavigateToLibraryStats
             )
         }
@@ -274,14 +274,14 @@ private fun MainSettingsContent(
                 headlineText = "DeepSeek API 配置",
                 supportingText = if (hasApiKey) "已配置" else "未配置",
                 leadingIcon = Icons.Default.Key,
-                leadingIconBackgroundColor = M3ExpressiveColors.Purple,
+                leadingIconBackgroundColor = M3SemanticColors.Purple,
                 onClick = onNavigateToApiKeyConfig
             )
             M3ListItemTwoLine(
                 headlineText = "主题",
                 supportingText = getThemeModeText(themeMode),
                 leadingIcon = Icons.Default.Palette,
-                leadingIconBackgroundColor = M3ExpressiveColors.Indigo,
+                leadingIconBackgroundColor = M3SemanticColors.Indigo,
                 onClick = {}
             )
         }
@@ -315,7 +315,7 @@ private fun MainSettingsContent(
                 headlineText = "版本",
                 supportingText = "1.0.0",
                 leadingIcon = Icons.Default.Info,
-                leadingIconBackgroundColor = M3ExpressiveColors.Teal,
+                leadingIconBackgroundColor = M3SemanticColors.Teal,
                 onClick = {},
                 trailingContent = {
                     Text(
@@ -375,7 +375,7 @@ private fun ThemeOptionItem(
                 Icon(
                     imageVector = Icons.Default.Check,
                     contentDescription = null,
-                    tint = M3ExpressiveColors.Green,
+                    tint = M3SemanticColors.Green,
                     modifier = Modifier.size(20.dp)
                 )
             }
@@ -549,7 +549,7 @@ private fun CompletedContent(
             modifier = Modifier
                 .size(60.dp)
                 .clip(RoundedCornerShape(30.dp))
-                .background(M3ExpressiveColors.Green),
+                .background(M3SemanticColors.Green),
             contentAlignment = Alignment.Center
         ) {
             Icon(
@@ -762,7 +762,7 @@ private fun ExcludedFolderItem(
         headlineText = getFolderDisplayName(folder.path),
         supportingText = folder.path,
         leadingIcon = Icons.Default.Folder,
-        leadingIconBackgroundColor = M3ExpressiveColors.Blue,
+        leadingIconBackgroundColor = M3SemanticColors.Blue,
         onClick = {},
         trailingContent = {
             IconButton(
@@ -772,7 +772,7 @@ private fun ExcludedFolderItem(
                 Icon(
                     imageVector = Icons.Default.Delete,
                     contentDescription = "删除",
-                    tint = M3ExpressiveColors.Red,
+                    tint = M3SemanticColors.Red,
                     modifier = Modifier.size(20.dp)
                 )
             }
